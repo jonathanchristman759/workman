@@ -35,7 +35,7 @@ export interface Sermon {
   book?:        string | null
   chapterStart?: number | null
   mode:         EditorMode
-  outlineJson?: { points: OutlinePoint[] } | null
+  outline_json?: string | null
   manuscript?:  string | null
   notes?:       string | null
   wordCount:    number
@@ -138,6 +138,7 @@ export default function SermonEditorPage() {
   const [loading,    setLoading]    = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
   const [sidePanelTab, setSidePanelTab] = useState<'lexicon' | 'illustrations'>('lexicon')
+const [previewMode, setPreviewMode] = useState(false)
 
   // Track unsaved content separately from the sermon object
   // to avoid unnecessary re-renders on every keystroke
@@ -371,6 +372,7 @@ setSermon(data)
             padding:     '20px 24px',
             borderRight: '1px solid var(--color-border-subtle)',
             overflowY:   'auto',
+            position:    'relative',
           }}>
 
             {/* Sermon header */}
@@ -448,30 +450,98 @@ setSermon(data)
               ))}
             </div>
 
+{/* Preview toggle */}
+            <button
+              onClick={() => setPreviewMode(prev => !prev)}
+              style={{
+                position:   'absolute',
+                top:        12,
+                right:      12,
+                padding:    '5px 12px',
+                borderRadius: 6,
+                border:     '1px solid var(--color-border-default)',
+                background: previewMode ? 'var(--color-accent)' : 'var(--color-bg-secondary)',
+                color:      previewMode ? 'var(--color-accent-text)' : 'var(--color-text-secondary)',
+                fontSize:   12,
+                fontFamily: 'var(--font-sans)',
+                cursor:     'pointer',
+              }}
+            >
+              {previewMode
+                ? (language === 'ES' ? '✏ Editar' : '✏ Edit')
+                : (language === 'ES' ? '👁 Vista previa' : '👁 Preview')}
+            </button>
+
             {/* ── EDITOR CONTENT ── */}
-            {sermon.mode === 'OUTLINE' && (
-              <OutlineEditor
-                points={sermon.outlineJson?.points ?? []}
-                onChange={handleOutlineChange}
-                language={language}
-              />
-            )}
-
-            {sermon.mode === 'MANUSCRIPT' && (
-              <ManuscriptEditor
-                content={sermon.manuscript ?? ''}
-                onChange={handleManuscriptChange}
-                language={language}
-                fontSize={16}
-              />
-            )}
-
-            {sermon.mode === 'NOTES' && (
-              <NotesEditor
-                content={sermon.notes ?? ''}
-                onChange={handleNotesChange}
-                language={language}
-              />
+            {previewMode ? (
+              <div style={{
+                padding:    '24px 32px',
+                background: 'var(--color-bg-primary)',
+                border:     '1px solid var(--color-border-subtle)',
+                borderRadius: 'var(--radius-md)',
+                minHeight:  400,
+                fontFamily: 'var(--font-serif)',
+              }}>
+                <h1 style={{ fontSize: 22, fontWeight: 600, marginBottom: 4, color: 'var(--color-text-primary)' }}>
+                  {sermon.title}
+                </h1>
+                <p style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text-secondary)', marginBottom: 4 }}>
+                  {sermon.passage_ref} · King James Version
+                </p>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--color-accent)', marginBottom: 24 }} />
+                {sermon.mode === 'OUTLINE' && sermon.outline_json && (
+                  <div>
+                    {JSON.parse(sermon.outline_json).points.map((point: any, i: number) => (
+                      <div key={point.id} style={{ marginBottom: 20 }}>
+                        <p style={{ fontSize: 16, fontWeight: 600, margin: '0 0 4px', color: 'var(--color-text-primary)' }}>
+                          {['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]}. {point.text}
+                          {point.verseRef && <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: 8 }}>({point.verseRef})</span>}
+                        </p>
+                        {point.subpoints?.map((sub: string, j: number) => (
+                          <p key={j} style={{ fontSize: 14, margin: '2px 0 2px 24px', color: 'var(--color-text-secondary)' }}>
+                            {['a','b','c','d','e','f','g','h','i','j'][j]}. {sub}
+                          </p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {sermon.mode === 'MANUSCRIPT' && (
+                  <div style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--color-text-primary)', whiteSpace: 'pre-wrap' }}>
+                    {sermon.manuscript}
+                  </div>
+                )}
+                {sermon.mode === 'NOTES' && (
+                  <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-primary)', whiteSpace: 'pre-wrap' }}>
+                    {sermon.notes}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                {sermon.mode === 'OUTLINE' && (
+                  <OutlineEditor
+                    points={sermon.outline_json ? JSON.parse(sermon.outline_json).points ?? [] : []}
+                    onChange={handleOutlineChange}
+                    language={language}
+                  />
+                )}
+                {sermon.mode === 'MANUSCRIPT' && (
+                  <ManuscriptEditor
+                    content={sermon.manuscript ?? ''}
+                    onChange={handleManuscriptChange}
+                    language={language}
+                    fontSize={16}
+                  />
+                )}
+                {sermon.mode === 'NOTES' && (
+                  <NotesEditor
+                    content={sermon.notes ?? ''}
+                    onChange={handleNotesChange}
+                    language={language}
+                  />
+                )}
+              </>
             )}
           </div>
 

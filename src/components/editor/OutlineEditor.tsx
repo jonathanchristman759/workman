@@ -1,6 +1,4 @@
-
-
-import { useState, KeyboardEvent } from 'react'
+import { useState, useEffect, useRef, KeyboardEvent } from 'react'
 import { OutlinePoint } from '@/app/(app)/sermons/[id]/page'
 
 interface OutlineEditorProps {
@@ -16,43 +14,78 @@ function generateId(): string {
   return Math.random().toString(36).slice(2, 9)
 }
 
-export function OutlineEditor({ points, onChange, language }: OutlineEditorProps) {
+export function OutlineEditor({ points: initialPoints, onChange, language }: OutlineEditorProps) {
+  // Local state — edits happen here instantly without going through the parent
+  const [points, setPoints] = useState<OutlinePoint[]>(initialPoints)
+  const onChangeRef = useRef(onChange)
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const isInitialized = useRef(false)
+
+  // Keep onChangeRef current without triggering re-renders
+  useEffect(() => {
+    onChangeRef.current = onChange
+  }, [onChange])
+
+ // Sync from parent when data first arrives (sermon loads async)
+  useEffect(() => {
+    if (!isInitialized.current && initialPoints.length > 0) {
+      setPoints(initialPoints)
+      isInitialized.current = true
+    }
+  }, [initialPoints])
+
+  // Debounced notify parent — fires 800ms after last change
+  function notifyParent(newPoints: OutlinePoint[]) {
+    if (debounceRef.current) clearTimeout(debounceRef.current)
+    debounceRef.current = setTimeout(() => {
+      onChangeRef.current(newPoints)
+    }, 800)
+  }
+
+  function updatePoints(newPoints: OutlinePoint[]) {
+    setPoints(newPoints)
+    notifyParent(newPoints)
+  }
+
   function updatePoint(id: string, updates: Partial<OutlinePoint>) {
-    onChange(points.map((p) => p.id === id ? { ...p, ...updates } : p))
+    updatePoints(points.map(p => p.id === id ? { ...p, ...updates } : p))
   }
 
   function addPoint() {
-    onChange([...points, { id: generateId(), text: '', subpoints: [] }])
+    const newPoint: OutlinePoint = { id: generateId(), text: '', subpoints: [] }
+    updatePoints([...points, newPoint])
   }
 
   function removePoint(id: string) {
-    onChange(points.filter((p) => p.id !== id))
+    updatePoints(points.filter(p => p.id !== id))
   }
 
   function addSubpoint(pointId: string) {
-    onChange(points.map((p) =>
-      p.id === pointId ? { ...p, subpoints: [...p.subpoints, ''] } : p
+    updatePoints(points.map(p =>
+      p.id === pointId
+        ? { ...p, subpoints: [...(p.subpoints ?? []), ''] }
+        : p
     ))
   }
 
   function updateSubpoint(pointId: string, index: number, value: string) {
-    onChange(points.map((p) =>
+    updatePoints(points.map(p =>
       p.id === pointId
-        ? { ...p, subpoints: p.subpoints.map((s, i) => i === index ? value : s) }
+        ? { ...p, subpoints: p.subpoints?.map((s: string, i: number) => i === index ? value : s) ?? [] }
         : p
     ))
   }
 
   function removeSubpoint(pointId: string, index: number) {
-    onChange(points.map((p) =>
+    updatePoints(points.map(p =>
       p.id === pointId
-        ? { ...p, subpoints: p.subpoints.filter((_, i) => i !== index) }
+        ? { ...p, subpoints: p.subpoints?.filter((_: string, i: number) => i !== index) ?? [] }
         : p
     ))
   }
 
-  function handlePointKeyDown(e: KeyboardEvent, pointId: string) {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>, pointId: string) {
+    if (e.key === 'Enter') {
       e.preventDefault()
       addPoint()
     }
@@ -64,94 +97,94 @@ export function OutlineEditor({ points, onChange, language }: OutlineEditorProps
 
   return (
     <div>
-      {points.map((point, i) => (
+      {points.map((point, idx) => (
         <div key={point.id} style={{ marginBottom: 14 }}>
-
-          {/* Main point */}
           <div style={{
             display:      'flex',
             alignItems:   'flex-start',
             gap:          10,
-            padding:      '10px 12px',
-            background:   'var(--color-bg-secondary)',
-            borderRadius: 'var(--radius-md)',
             marginBottom: 4,
           }}>
             <span style={{
               fontSize:   13,
-              fontWeight: 600,
-              color:      'var(--color-accent)',
-              minWidth:   24,
-              paddingTop: 2,
+              fontWeight: 500,
+              color:      'var(--color-text-hint)',
+              minWidth:   20,
+              paddingTop: 8,
               fontFamily: 'var(--font-serif)',
             }}>
-              {ROMAN[i] ?? `${i + 1}.`}
+              {ROMAN[idx] ?? '•'}
             </span>
             <div style={{ flex: 1 }}>
               <input
                 type="text"
                 value={point.text}
                 onChange={(e) => updatePoint(point.id, { text: e.target.value })}
-                onKeyDown={(e) => handlePointKeyDown(e, point.id)}
-                placeholder={language === 'ES' ? 'Punto principal…' : 'Main point…'}
+                onKeyDown={(e) => handleKeyDown(e, point.id)}
+                placeholder={language === 'ES' ? 'Punto principal...' : 'Main point...'}
+                autoFocus={idx === points.length - 1 && point.text === ''}
                 style={{
-                  width:      '100%',
-                  border:     'none',
-                  background: 'transparent',
-                  fontSize:   14,
-                  fontWeight: 500,
-                  color:      'var(--color-text-primary)',
-                  fontFamily: 'var(--font-sans)',
-                  outline:    'none',
-                  padding:    0,
+                  width:        '100%',
+                  padding:      '7px 10px',
+                  border:       '1px solid var(--color-border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  background:   'var(--color-bg-primary)',
+                  color:        'var(--color-text-primary)',
+                  fontSize:     14,
+                  fontFamily:   'var(--font-sans)',
+                  outline:      'none',
+                  boxSizing:    'border-box',
                 }}
               />
-              {/* Verse ref */}
               <input
                 type="text"
                 value={point.verseRef ?? ''}
                 onChange={(e) => updatePoint(point.id, { verseRef: e.target.value })}
-                placeholder={language === 'ES' ? 'Referencia (ej. v. 11–14)' : 'Verse ref (e.g. v. 11–14)'}
+                placeholder={language === 'ES' ? 'Ref. versículo (ej. v. 11–14)' : 'Verse ref (e.g. v. 11–14)'}
                 style={{
-                  width:      '100%',
-                  border:     'none',
-                  background: 'transparent',
-                  fontSize:   11,
-                  color:      'var(--color-text-muted)',
-                  fontFamily: 'var(--font-sans)',
-                  outline:    'none',
-                  padding:    '2px 0 0',
+                  width:        '100%',
+                  padding:      '4px 10px',
+                  border:       'none',
+                  borderRadius: 'var(--radius-md)',
+                  background:   'transparent',
+                  color:        'var(--color-text-muted)',
+                  fontSize:     11,
+                  fontFamily:   'var(--font-serif)',
+                  fontStyle:    'italic',
+                  outline:      'none',
+                  boxSizing:    'border-box',
+                  marginTop:    2,
                 }}
               />
             </div>
             <div style={{ display: 'flex', gap: 4 }}>
               <button
                 onClick={() => addSubpoint(point.id)}
-                title={language === 'ES' ? 'Añadir subpunto' : 'Add sub-point'}
                 style={{
-                  fontSize:   10,
-                  padding:    '2px 7px',
+                  padding:      '4px 8px',
                   borderRadius: 4,
-                  border:     '1px solid var(--color-border-default)',
-                  background: 'transparent',
-                  color:      'var(--color-text-muted)',
-                  cursor:     'pointer',
-                  fontFamily: 'var(--font-sans)',
+                  border:       '1px solid var(--color-border-default)',
+                  background:   'var(--color-bg-secondary)',
+                  color:        'var(--color-text-muted)',
+                  fontSize:     10,
+                  fontFamily:   'var(--font-sans)',
+                  cursor:       'pointer',
+                  whiteSpace:   'nowrap',
                 }}
               >
                 + {language === 'ES' ? 'sub' : 'sub'}
               </button>
               <button
                 onClick={() => removePoint(point.id)}
-                title={language === 'ES' ? 'Eliminar punto' : 'Remove point'}
                 style={{
-                  fontSize:   11,
-                  padding:    '2px 6px',
+                  padding:      '4px 6px',
                   borderRadius: 4,
-                  border:     'none',
-                  background: 'transparent',
-                  color:      'var(--color-text-hint)',
-                  cursor:     'pointer',
+                  border:       '1px solid var(--color-border-default)',
+                  background:   'var(--color-bg-secondary)',
+                  color:        'var(--color-text-muted)',
+                  fontSize:     12,
+                  fontFamily:   'var(--font-sans)',
+                  cursor:       'pointer',
                 }}
               >
                 ×
@@ -159,74 +192,71 @@ export function OutlineEditor({ points, onChange, language }: OutlineEditorProps
             </div>
           </div>
 
-          {/* Sub-points */}
-          {point.subpoints.map((sub, j) => (
+          {(point.subpoints ?? []).map((sub: string, j: number) => (
             <div key={j} style={{
-              display:    'flex',
-              alignItems: 'flex-start',
-              gap:        8,
-              padding:    '6px 10px',
-              marginLeft: 24,
-              borderLeft: '2px solid var(--color-border-subtle)',
+              display:      'flex',
+              alignItems:   'center',
+              gap:          8,
+              marginLeft:   30,
               marginBottom: 3,
             }}>
               <span style={{
                 fontSize:   11,
                 color:      'var(--color-text-hint)',
-                minWidth:   16,
+                minWidth:   14,
                 paddingTop: 2,
               }}>
-                {ALPHA[j]}.
+                {ALPHA[j] ?? '·'}
               </span>
               <input
                 type="text"
                 value={sub}
                 onChange={(e) => updateSubpoint(point.id, j, e.target.value)}
-                placeholder={language === 'ES' ? 'Subpunto…' : 'Sub-point…'}
+                placeholder={language === 'ES' ? 'Sub-punto...' : 'Sub-point...'}
                 style={{
-                  flex:       1,
-                  border:     'none',
-                  background: 'transparent',
-                  fontSize:   12,
-                  color:      'var(--color-text-secondary)',
-                  fontFamily: 'var(--font-sans)',
-                  outline:    'none',
-                  padding:    0,
+                  flex:         1,
+                  padding:      '5px 8px',
+                  border:       '1px solid var(--color-border-subtle)',
+                  borderRadius: 'var(--radius-md)',
+                  background:   'var(--color-bg-primary)',
+                  color:        'var(--color-text-primary)',
+                  fontSize:     12,
+                  fontFamily:   'var(--font-sans)',
+                  outline:      'none',
                 }}
               />
               <button
                 onClick={() => removeSubpoint(point.id, j)}
                 style={{
-                  fontSize:   11,
-                  border:     'none',
-                  background: 'transparent',
-                  color:      'var(--color-text-hint)',
-                  cursor:     'pointer',
-                  padding:    0,
+                  padding:      '3px 6px',
+                  borderRadius: 4,
+                  border:       '1px solid var(--color-border-default)',
+                  background:   'var(--color-bg-secondary)',
+                  color:        'var(--color-text-muted)',
+                  fontSize:     11,
+                  cursor:       'pointer',
                 }}
               >×</button>
             </div>
           ))}
-
         </div>
       ))}
 
-      {/* Add point button */}
       <button
         onClick={addPoint}
         style={{
           display:      'flex',
           alignItems:   'center',
           gap:          6,
-          padding:      '8px 12px',
+          width:        '100%',
+          padding:      '9px 12px',
           borderRadius: 'var(--radius-md)',
-          border:       '1.5px dashed var(--color-border-default)',
+          border:       '1px dashed var(--color-border-default)',
           background:   'transparent',
           color:        'var(--color-text-muted)',
-          fontSize:     12,
+          fontSize:     13,
           fontFamily:   'var(--font-sans)',
           cursor:       'pointer',
-          width:        '100%',
           marginTop:    4,
         }}
       >
@@ -235,7 +265,7 @@ export function OutlineEditor({ points, onChange, language }: OutlineEditorProps
 
       <p style={{ fontSize: 10, color: 'var(--color-text-hint)', marginTop: 8 }}>
         {language === 'ES'
-          ? 'Enter para nuevo punto · Tab para subpunto'
+          ? 'Enter para nuevo punto · Tab para sub-punto'
           : 'Enter for new point · Tab for sub-point'}
       </p>
     </div>
