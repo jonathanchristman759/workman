@@ -258,8 +258,21 @@ setSermon(data)
   // ── EXPORT ────────────────────────────────
 
   async function handleExport() {
-   await invoke('export_sermon_pdf', { id: sermonId, outputPath: '' })
+  try {
+    const { save } = await import('@tauri-apps/plugin-dialog')
+    const outputPath = await save({
+      title:       'Export sermon as PDF',
+      defaultPath: `${(sermon?.title ?? 'sermon').replace(/[:\\/*?"<>|]/g, '-').replace(/–/g, '-')}.pdf`,
+      filters:     [{ name: 'PDF', extensions: ['pdf'] }],
+    })
+    if (!outputPath) return
+    await invoke('export_sermon_pdf', { id: sermonId, outputPath })
+    alert('PDF exported successfully.')
+  } catch (err) {
+    console.error('Export failed:', err)
+    alert('Export failed. Check the console for details.')
   }
+}
 
   // ─────────────────────────────────────────
   // RENDER
