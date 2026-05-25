@@ -247,7 +247,7 @@ setStats({
               </p>
             ) : (
               sermons.map((s) => (
-                <Link key={s.id} href={`/sermons/${s.id}`} style={{ textDecoration: 'none' }}>
+                <Link key={s.id} to={`/sermons/${s.id}`} style={{ textDecoration: 'none' }}>
                   <div style={{
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                     padding: '10px 12px',

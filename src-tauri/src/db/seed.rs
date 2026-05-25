@@ -26,7 +26,7 @@ static STRONGS_GREEK_JSON:    &str = include_str!("../../../public/data/strongs-
 static STRONGS_HEBREW_JSON:   &str = include_str!("../../../public/data/strongs-hebrew.json");
 static ILLUSTRATIONS_EN_JSON: &str = include_str!("../../../public/data/illustrations-en.json");
 static ILLUSTRATIONS_ES_JSON: &str = include_str!("../../../public/data/illustrations-es.json");
-
+static MORPHGNT_JSON: &str = include_str!("../../../public/data/morphgnt-occurrences.json");
 // ─────────────────────────────────────────────
 // TYPES for JSON deserialization
 // ─────────────────────────────────────────────
@@ -133,7 +133,7 @@ pub fn seed_if_empty(conn: &Connection) -> Result<()> {
     seed_strongs(conn, STRONGS_HEBREW_JSON, "HEBREW", "H")?;
     seed_illustrations(conn, ILLUSTRATIONS_EN_JSON, "EN")?;
     seed_illustrations(conn, ILLUSTRATIONS_ES_JSON, "ES")?;
-
+seed_morphgnt(conn)?;
     println!("Seeding complete.");
     Ok(())
 }
@@ -355,3 +355,78 @@ fn seed_illustrations(conn: &Connection, json_str: &str, language: &str) -> Resu
     Ok(())
 }
 
+pub fn seed_morphgnt(conn: &Connection) -> Result<()> {
+    let count: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM lexicon_occurrences",
+        [],
+        |r| r.get(0),
+    ).unwrap_or(0);
+
+    if count > 0 {
+        println!("  Lexicon occurrences already seeded ({} entries)", count);
+        return Ok(());
+    }
+
+    println!("  Seeding Greek NT occurrences…");
+
+    type VerseData = Vec<serde_json::Value>;
+    let data: std::collections::HashMap<String, VerseData> =
+        serde_json::from_str(MORPHGNT_JSON)
+            .map_err(|e| AppError::ParseError(e.to_string()))?;
+
+    let tx = conn.unchecked_transaction()
+        .map_err(|e| AppError::Database(e.to_string()))?;
+
+    let mut stmt = tx.prepare(
+        "INSERT OR IGNORE INTO lexicon_occurrences
+         (id, word_id, book, chapter, verse, kjv_rendering, parsing)
+         SELECT ?1, lw.id, ?2, ?3, ?4, ?5, ?6
+         FROM lexicon_words lw
+         WHERE lw.strongs_number = ?7
+         LIMIT 1"
+    ).map_err(|e| AppError::Database(e.to_string()))?;
+
+    let mut inserted = 0u32;
+    let mut skipped  = 0u32;
+
+    for (key, words) in &data {
+        let parts: Vec<&str> = key.split('|').collect();
+        if parts.len() != 3 { continue; }
+
+        let book    = parts[0];
+        let chapter: i64 = parts[1].parse().unwrap_or(0);
+        let verse:   i64 = parts[2].parse().unwrap_or(0);
+
+        for word in words {
+            let strongs = match word.get("strongs").and_then(|s| s.as_str()) {
+                Some(s) if !s.is_empty() => s.to_string(),
+                _ => continue, // skip words without Strong's number
+            };
+
+            let kjv_rendering = word.get("word")
+                .and_then(|w| w.as_str())
+                .unwrap_or("")
+                .to_string();
+
+            let parsing = word.get("parsing")
+                .and_then(|p| p.as_str())
+                .map(|s| s.to_string());
+
+            let rows = stmt.execute(rusqlite::params![
+                crate::db::new_id(),
+                book, chapter, verse,
+                kjv_rendering, parsing,
+                strongs,
+            ]).unwrap_or(0);
+
+            if rows > 0 { inserted += 1; }
+            else { skipped += 1; }
+        }
+    }
+
+    drop(stmt);
+    tx.commit().map_err(|e| AppError::Database(e.to_string()))?;
+
+    println!("    {} occurrences inserted, {} skipped (no matching word)", inserted, skipped);
+    Ok(())
+}

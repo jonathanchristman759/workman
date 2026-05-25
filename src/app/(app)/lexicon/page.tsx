@@ -44,14 +44,14 @@ interface BibleVerse {
 }
 
 interface InterlinearWord {
-  kjvRendering:    string
+  kjv_rendering:   string
   parsing?:        string | null
-  strongsNumber:   string
+  strongs_number:  string
   language:        string
-  originalWord:    string
+  original_word:   string
   transliteration: string
   glosses:         string[]
-  partOfSpeech?:   string | null
+  part_of_speech?: string | null
 }
 
 interface PassageData {
@@ -108,7 +108,7 @@ function WordUnit({
   return (
     <div
       onClick={onClick}
-      title={`${word.strongsNumber} — ${word.glosses[0] ?? ''}`}
+      title={`${word.strongs_number} — ${word.glosses[0] ?? ''}`}
       style={{
         display:       'flex',
         flexDirection: 'column',
@@ -128,13 +128,13 @@ function WordUnit({
         color:      isSelected ? 'var(--color-accent-text)' : 'var(--color-text-primary)',
         lineHeight: 1.3,
       }}>
-        {word.originalWord}
+        {word.original_word}
       </span>
       <span style={{ fontSize: 9, color: 'var(--color-text-hint)', marginTop: 1 }}>
         {word.transliteration}
       </span>
       <span style={{ fontSize: 10, color: 'var(--color-interactive)', marginTop: 1 }}>
-        {word.kjvRendering}
+        {word.kjv_rendering}
       </span>
     </div>
   )
@@ -162,8 +162,8 @@ function WordDetailPanel({
     setSaving(true)
     try {
       await invoke('save_bookmark', { input: {
-        strongsNumber:   word.strongsNumber,
-        originalWord:    word.originalWord,
+        strongsNumber:   word.strongs_number,
+        originalWord:    word.original_word,
         transliteration: word.transliteration,
         language:        word.language,
         passageRef,
@@ -180,7 +180,7 @@ function WordDetailPanel({
 
   async function handleRemoveBookmark() {
     try {
-      await invoke('delete_bookmark', { strongsNumber: word.strongsNumber })
+      await invoke('delete_bookmark', { strongsNumber: word.strongs_number })
       setBookmarked(false)
       onBookmarkSaved()
     } catch (err) {
@@ -189,10 +189,10 @@ function WordDetailPanel({
   }
 
   const parseRows = [
-    { label: language === 'ES' ? 'Parte del discurso' : 'Part of speech', value: word.partOfSpeech },
+    { label: language === 'ES' ? 'Parte del discurso' : 'Part of speech', value: word.part_of_speech },
     { label: language === 'ES' ? 'Transliteración'    : 'Transliteration', value: word.transliteration },
     { label: language === 'ES' ? 'Pronunciación'      : 'Pronunciation',   value: word.pronunciation },
-    { label: language === 'ES' ? 'Número Strong\'s'   : 'Strong\'s number', value: word.strongsNumber },
+    { label: language === 'ES' ? 'Número Strong\'s'   : 'Strong\'s number', value: word.strongs_number },
     { label: language === 'ES' ? 'Apariciones'        : 'NT/OT count',      value: word.ntOtCount ? `${word.ntOtCount}×` : null },
   ].filter((r) => r.value)
 
@@ -212,12 +212,12 @@ function WordDetailPanel({
             margin:     '0 0 3px',
             color:      'var(--color-text-primary)',
           }}>
-            {word.originalWord}
+            {word.original_word}
           </p>
           <LangBadge lang={word.language} />
         </div>
         <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-interactive)', margin: '0 0 4px' }}>
-          {word.transliteration} · {word.strongsNumber}
+          {word.transliteration} · {word.strongs_number}
         </p>
         <p style={{ fontSize: 11, color: 'var(--color-text-secondary)', margin: 0 }}>
           {word.glosses.slice(0, 3).join(', ')}
@@ -427,12 +427,25 @@ export default function LexiconPage() {
     setSelectedWord(null)
     setWordDetail(null)
     try {
-      const data = await invoke<PassageData>('get_passage_interlinear', {
-  book: passage.book,
-  chapter: parseInt(passage.chapter),
-  translation: passage.translation,
-})
-setPassageData({ verses: [], interlinear: data })
+      const data = await invoke<Record<string, InterlinearWord[]>>('get_passage_interlinear', {
+        book:    passage.book,
+        chapter: parseInt(passage.chapter),
+      })
+      const interlinear: Record<number, InterlinearWord[]> = {}
+      const verseNumbers = Object.keys(data).map(Number).sort((a, b) => a - b)
+      for (const k of Object.keys(data)) {
+        interlinear[parseInt(k)] = data[k]
+      }
+      const verses = verseNumbers.map(v => ({
+        id:          `${passage.book}-${passage.chapter}-${v}`,
+        translation: 'KJV',
+        book:        passage.book,
+        bookNumber:  0,
+        chapter:     parseInt(passage.chapter),
+        verse:       v,
+        text:        '',
+      }))
+      setPassageData({ verses, interlinear })
     } catch (err) {
       console.error('Passage load failed:', err)
     } finally {
@@ -456,12 +469,11 @@ setBookmarks(data)
   // ── WORD CLICK ────────────────────────────
 
   async function handleWordClick(word: InterlinearWord) {
+    console.log('Word clicked:', JSON.stringify(word))
     setSelectedWord(word)
     setLoadingWord(true)
     try {
-      const data = await invoke<LexiconWord>('get_word', {
-  strongsNumber: word.strongsNumber
-})
+      const data = await invoke<LexiconWord>('get_word', { strongsNumber: word.strongs_number })
 setWordDetail(data)
 setWordBookmark(null)
     } catch (err) {
@@ -676,9 +688,9 @@ setSearchResults(data)
                       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 8 }}>
                         {(passageData.interlinear[v.verse] ?? []).map((word, i) => (
                           <WordUnit
-                            key={`${word.strongsNumber}-${i}`}
+                            key={`${word.strongs_number}-${i}`}
                             word={word}
-                            isSelected={selectedWord?.strongsNumber === word.strongsNumber}
+                            isSelected={selectedWord?.strongsNumber === word.strongs_number}
                             onClick={() => handleWordClick(word)}
                           />
                         ))}

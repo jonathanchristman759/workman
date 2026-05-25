@@ -137,7 +137,7 @@ export default function SermonEditorPage() {
   const [sermon,     setSermon]     = useState<Sermon | null>(null)
   const [loading,    setLoading]    = useState(true)
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
-  const [sidePanelTab, setSidePanelTab] = useState<'lexicon' | 'illustrations' | 'assistant'>('lexicon')
+  const [sidePanelTab, setSidePanelTab] = useState<'lexicon' | 'illustrations'>('lexicon')
 
   // Track unsaved content separately from the sermon object
   // to avoid unnecessary re-renders on every keystroke
