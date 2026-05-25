@@ -142,7 +142,7 @@ export default function SermonEditorPage() {
   // Track unsaved content separately from the sermon object
   // to avoid unnecessary re-renders on every keystroke
   const pendingContent = useRef<Partial<Sermon>>({})
-  const autoSaveTimer  = useRef<NodeJS.Timeout | null>(null)
+  const autoSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // ── LOAD ──────────────────────────────────
 
@@ -207,7 +207,7 @@ setSermon(data)
       } catch {
         setSaveStatus('unsaved')
       }
-    }, 3000)
+    }, 5000)
   }, [sermonId])
 
   // Cleanup timer on unmount

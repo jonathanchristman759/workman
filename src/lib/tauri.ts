@@ -9,7 +9,6 @@
 
 import { invoke } from '@tauri-apps/api/core'
 import { open as openDialog, save as saveDialog } from '@tauri-apps/plugin-dialog'
-import { open as openUrl } from '@tauri-apps/plugin-opener'
 
 // ─────────────────────────────────────────────
 // SHARED TYPES

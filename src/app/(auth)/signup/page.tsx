@@ -1,3 +1,8 @@
+import { useState, FormEvent } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { useAuth } from '@/components/providers/AuthProvider'
+import { api } from '@/lib/api'
+
 export default function SignupPage() {
   const [name,     setName]     = useState('')
   const [email,    setEmail]    = useState('')

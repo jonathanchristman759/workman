@@ -136,7 +136,6 @@ export default function SettingsPage() {
                   </div>
                 ))}
                 <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: 0 }}>
-                  {language === 'ES' ? 'Email: ' : 'Email: '}{user?.email}
                 </p>
               </div>
             )}

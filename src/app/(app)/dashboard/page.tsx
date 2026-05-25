@@ -444,7 +444,7 @@ setData({
                   </p>
                 ) : (
                   data?.recentSermons.map((sermon) => (
-                    <Link key={sermon.id} href={`/sermons/${sermon.id}`} style={{ textDecoration: 'none' }}>
+                    <Link key={sermon.id} to={`/sermons/${sermon.id}`} style={{ textDecoration: 'none' }}>
                       <div style={{
                         display:        'flex',
                         justifyContent: 'space-between',
@@ -494,7 +494,7 @@ setData({
                     { href: '/archive/import', icon: '↑', label: language === 'ES' ? 'Importar sermones' : 'Import sermons' },
                     { href: '/illustrations', icon: '◈', label: language === 'ES' ? 'Ver ilustraciones' : 'Browse illustrations' },
                   ].map((action) => (
-                    <Link key={action.href} href={action.href} style={{ textDecoration: 'none' }}>
+                    <Link key={action.href} to={action.href} style={{ textDecoration: 'none' }}>
                       <button className="workman-btn" style={{
                         width:   '100%',
                         fontSize: 12,

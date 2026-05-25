@@ -15,16 +15,17 @@ import { invoke } from '@tauri-apps/api/core'
 // ─────────────────────────────────────────────
 
 interface LexiconWord {
-  strongsNumber:   string
-  language:        'HEBREW' | 'ARAMAIC' | 'GREEK'
-  originalWord:    string
+  id:              string
+  strongs_number:  string
+  language:        string
+  original_word:   string
   transliteration: string
   pronunciation?:  string | null
-  partOfSpeech?:   string | null
+  part_of_speech?: string | null
   glosses:         string[]
   definition?:     string | null
-  ntOtCount?:      number | null
-  occurrences:     Occurrence[]
+  nt_ot_count?:    number | null
+  occurrences:     LexiconOccurrence[]
 }
 
 interface Occurrence {
@@ -60,13 +61,23 @@ interface PassageData {
 }
 
 interface Bookmark {
+  id:              string
+  strongs_number:  string
+  original_word:   string
+  language:        string
+  passage_ref?:    string | null
+  note?:           string | null
+  saved_at:        string
+}
+
+interface LexiconOccurrence {
   id:            string
-  strongsNumber: string
-  originalWord:  string
-  language:      string
-  passageRef?:   string | null
-  note?:         string | null
-  savedAt:       string
+  word_id:       string
+  book:          string
+  chapter:       number
+  verse:         number
+  kjv_rendering: string
+  parsing?:      string | null
 }
 
 // ─────────────────────────────────────────────
@@ -193,7 +204,7 @@ function WordDetailPanel({
     { label: language === 'ES' ? 'Transliteración'    : 'Transliteration', value: word.transliteration },
     { label: language === 'ES' ? 'Pronunciación'      : 'Pronunciation',   value: word.pronunciation },
     { label: language === 'ES' ? 'Número Strong\'s'   : 'Strong\'s number', value: word.strongs_number },
-    { label: language === 'ES' ? 'Apariciones'        : 'NT/OT count',      value: word.ntOtCount ? `${word.ntOtCount}×` : null },
+    { label: language === 'ES' ? 'Apariciones'        : 'NT/OT count',      value: word.nt_ot_count ? `${word.nt_ot_count}×` : null },
   ].filter((r) => r.value)
 
   return (
@@ -314,7 +325,7 @@ function WordDetailPanel({
                   {occ.book} {occ.chapter}:{occ.verse}
                 </span>
                 <span style={{ color: 'var(--color-text-secondary)', flex: 1, textAlign: 'right' }}>
-                  {occ.kjvRendering}
+                  {occ.kjv_rendering}
                 </span>
               </div>
             ))}
@@ -618,7 +629,7 @@ setSearchResults(data)
                 </p>
                 {searchResults.map((w) => (
                   <div
-                    key={w.strongsNumber}
+                    key={w.strongs_number}
                     onClick={() => handleWordClick(w as unknown as InterlinearWord)}
                     style={{
                       display:        'flex',
@@ -632,11 +643,11 @@ setSearchResults(data)
                     }}
                   >
                     <span style={{ fontFamily: 'var(--font-serif)', fontSize: 17, color: 'var(--color-text-primary)', minWidth: 50 }}>
-                      {w.originalWord}
+                      {w.original_word}
                     </span>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: 12, fontWeight: 500, color: 'var(--color-interactive)', margin: 0 }}>
-                        {w.transliteration} · {w.strongsNumber}
+                        {w.transliteration} · {w.strongs_number}
                       </p>
                       <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: 0 }}>
                         {w.glosses.slice(0, 2).join(', ')}
@@ -690,7 +701,7 @@ setSearchResults(data)
                           <WordUnit
                             key={`${word.strongs_number}-${i}`}
                             word={word}
-                            isSelected={selectedWord?.strongsNumber === word.strongs_number}
+                            isSelected={selectedWord?.strongs_number === word.strongs_number}
                             onClick={() => handleWordClick(word)}
                           />
                         ))}
@@ -737,17 +748,17 @@ setSearchResults(data)
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>
                           <span style={{ fontFamily: 'var(--font-serif)', fontSize: 16, color: 'var(--color-text-primary)' }}>
-                            {b.originalWord}
+                            {b.original_word}
                           </span>
                           <span style={{ fontSize: 11, color: 'var(--color-interactive)', marginLeft: 8 }}>
-                            {b.strongsNumber}
+                            {b.strongs_number}
                           </span>
                         </div>
                         <LangBadge lang={b.language} />
                       </div>
-                      {b.passageRef && (
+                      {b.passage_ref && (
                         <p style={{ fontSize: 10, color: 'var(--color-text-muted)', margin: '3px 0 0' }}>
-                          {b.passageRef}
+                          {b.passage_ref}
                         </p>
                       )}
                       {b.note && (
