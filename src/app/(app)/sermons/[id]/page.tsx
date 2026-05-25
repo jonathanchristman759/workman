@@ -182,9 +182,9 @@ setSermon(data)
         let wordCount = 0
         if (updates.manuscript) wordCount = countWords(updates.manuscript)
         else if (updates.notes)  wordCount = countWords(updates.notes)
-        else if (updates.outlineJson) {
-          const pts = updates.outlineJson.points ?? []
-          wordCount = pts.reduce((sum, p) => {
+        else if (updates.outline_json) {
+          const pts = updates.outline_json ? JSON.parse(updates.outline_json).points ?? [] : []
+          wordCount = pts.reduce((sum: number, p: OutlinePoint) => {
             return sum + countWords(p.text) +
               (p.subpoints ?? []).reduce((s: number, sp: string) => s + countWords(sp), 0)
           }, 0)
@@ -193,7 +193,7 @@ setSermon(data)
         await invoke('update_sermon', {
   id: sermonId,
   input: {
-    outline_json: updates.outlineJson ? JSON.stringify(updates.outlineJson) : undefined,
+    outline_json: updates.outline_json ? JSON.stringify(updates.outline_json) : undefined,
     manuscript:   updates.manuscript,
     notes:        updates.notes,
     word_count:   wordCount,
@@ -221,7 +221,7 @@ setSermon(data)
   // ── CONTENT CHANGE HANDLERS ───────────────
 
   function handleOutlineChange(points: OutlinePoint[]) {
-    pendingContent.current = { ...pendingContent.current, outlineJson: { points } }
+    pendingContent.current = { ...pendingContent.current, outline_json: JSON.stringify({ points }) }
     scheduleSave()
   }
 
@@ -486,7 +486,7 @@ setSermon(data)
                   {sermon.title}
                 </h1>
                 <p style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text-secondary)', marginBottom: 4 }}>
-                  {sermon.passage_ref} · King James Version
+                  {sermon.passageRef} · King James Version
                 </p>
                 <hr style={{ border: 'none', borderTop: '1px solid var(--color-accent)', marginBottom: 24 }} />
                 {sermon.mode === 'OUTLINE' && sermon.outline_json && (
