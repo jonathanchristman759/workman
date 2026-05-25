@@ -15,14 +15,14 @@ import { invoke } from '@tauri-apps/api/core'
 // ─────────────────────────────────────────────
 
 interface Sermon {
-  id:           string
-  title:        string
-  passageRef:   string
-  status:       string
-  wordCount:    number
-  deliveryDate: string | null
-  updatedAt:    string
-  series?:      { id: string; title: string } | null
+  id:            string
+  title:         string
+  passage_ref:   string
+  status:        string
+  word_count:    number
+  delivery_date: string | null
+  updated_at:    string
+  series_title?: string | null
 }
 
 interface DashboardStats {
@@ -63,7 +63,7 @@ function formatDate(dateStr: string): string {
 
 function outlineProgress(sermon: Sermon): number {
   // Rough heuristic — word count relative to a typical 30-min sermon (~3,900 words)
-  return Math.min(Math.round((sermon.wordCount / 3900) * 100), 100)
+  return Math.min(Math.round((sermon.word_count / 3900) * 100), 100)
 }
 
 // ─────────────────────────────────────────────
@@ -200,7 +200,7 @@ setData({
                         color:      'var(--color-text-secondary)',
                         margin:     '3px 0 0',
                       }}>
-                        {data.activeSermon.passageRef}
+                        {data.activeSermon.passage_ref}
                       </p>
                     </div>
                     <span className="workman-badge workman-badge-success">
@@ -222,11 +222,11 @@ setData({
                       textAlign:    'center',
                     }}>
                       <p style={{ fontSize: 18, fontWeight: 500, margin: 0, color: 'var(--color-text-primary)' }}>
-                        {data.activeSermon.wordCount.toLocaleString()}
+                        {data.activeSermon.word_count.toLocaleString()}
                       </p>
                       <p style={{ fontSize: 10, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
                         {language === 'ES' ? 'palabras' : 'words'} ·{' '}
-                        ~{estimateMinutes(data.activeSermon.wordCount)} min
+                        ~{estimateMinutes(data.activeSermon.word_count)} min
                       </p>
                     </div>
                     <div style={{
@@ -248,13 +248,13 @@ setData({
                       padding:      '10px',
                       textAlign:    'center',
                     }}>
-                      {data.activeSermon.deliveryDate ? (
+                      {data.activeSermon.delivery_date ? (
                         <>
                           <p style={{ fontSize: 18, fontWeight: 500, margin: 0, color: 'var(--color-text-primary)' }}>
-                            {formatDate(data.activeSermon.deliveryDate)}
+                            {formatDate(data.activeSermon.delivery_date)}
                           </p>
                           <p style={{ fontSize: 10, color: 'var(--color-text-muted)', margin: '2px 0 0' }}>
-                            {daysUntil(data.activeSermon.deliveryDate)} {language === 'ES' ? 'días' : 'days away'}
+                            {daysUntil(data.activeSermon.delivery_date)} {language === 'ES' ? 'días' : 'days away'}
                           </p>
                         </>
                       ) : (
@@ -305,7 +305,7 @@ setData({
                         {language === 'ES' ? 'Continuar editando' : 'Continue editing'}
                       </button>
                     </Link>
-                    <Link to={`/lexicon?ref=${encodeURIComponent(data.activeSermon.passageRef)}`}
+                    <Link to={`/lexicon?ref=${encodeURIComponent(data.activeSermon.passage_ref)}`}
                       style={{ flex: 1, textDecoration: 'none' }}>
                       <button className="workman-btn" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}>
                         {language === 'ES' ? 'Abrir en léxico' : 'Open in lexicon'}
@@ -358,8 +358,8 @@ setData({
                   }}>
                     <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '0 0 5px' }}>
                       {language === 'ES'
-                        ? `Sugerido para ${data.activeSermon.passageRef}`
-                        : `Suggested for ${data.activeSermon.passageRef}`}
+                        ? `Sugerido para ${data.activeSermon.passage_ref}`
+                        : `Suggested for ${data.activeSermon.passage_ref}`}
                     </p>
                     <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', margin: '0 0 3px' }}>
                       · {language === 'ES'
@@ -460,7 +460,7 @@ setData({
                             {sermon.title}
                           </p>
                           <p style={{ fontSize: 10, color: 'var(--color-text-muted)', margin: '1px 0 0' }}>
-                            {sermon.deliveryDate ? formatDate(sermon.deliveryDate) : sermon.passageRef}
+                            {sermon.delivery_date ? formatDate(sermon.delivery_date) : sermon.passage_ref}
                           </p>
                         </div>
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">

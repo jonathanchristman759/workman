@@ -192,9 +192,11 @@ setSermon(data)
         await invoke('update_sermon', {
   id: sermonId,
   input: {
-    ...updates,
-    wordCount,
-    autosave: true,
+    outline_json: updates.outlineJson ? JSON.stringify(updates.outlineJson) : undefined,
+    manuscript:   updates.manuscript,
+    notes:        updates.notes,
+    word_count:   wordCount,
+    autosave:     true,
   }
 })
 
