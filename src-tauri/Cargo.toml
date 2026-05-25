@@ -1,0 +1,68 @@
+[package]
+name = "workman"
+version = "0.1.0"
+description = "Workman — sermon preparation workspace for faithful pastors"
+authors = ["Workman"]
+license = ""
+repository = ""
+edition = "2021"
+rust-version = "1.77"
+
+[lib]
+name = "workman_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+# ── Tauri ──────────────────────────────────────
+tauri = { version = "2", features = [
+] }
+tauri-plugin-shell    = "2"
+tauri-plugin-dialog   = "2"
+tauri-plugin-fs       = "2"
+tauri-plugin-opener   = "2"
+
+# ── Database ────────────────────────────────────
+# rusqlite with bundled SQLite — no system SQLite dependency required
+rusqlite = { version = "0.31", features = ["bundled"] }
+rusqlite_migration = "1.2"
+
+# ── Serialization ───────────────────────────────
+serde        = { version = "1", features = ["derive"] }
+serde_json   = "1"
+
+# ── Error handling ──────────────────────────────
+thiserror = "1"
+anyhow    = "1"
+
+# ── File parsing (sermon import) ─────────────────
+# docx parsing
+docx-rs   = "0.4"
+# pdf text extraction
+pdf-extract = "0.7"
+# zip for bulk import
+zip = "2"
+
+# ── PDF generation (sermon export) ───────────────
+printpdf = "0.7"
+
+# ── Async runtime ────────────────────────────────
+tokio = { version = "1", features = ["full"] }
+
+# ── Utilities ────────────────────────────────────
+chrono    = { version = "0.4", features = ["serde"] }
+uuid      = { version = "1", features = ["v4", "serde"] }
+once_cell = "1"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]
+
+[profile.release]
+panic   = "abort"
+codegen-units = 1
+lto     = true
+opt-level = "s"   # optimize for size — keeps the binary small
+strip   = true

@@ -1,0 +1,385 @@
+/* Workman — themes.css
+   apps/web/src/styles/themes.css
+   All five color themes defined as CSS custom property sets.
+   Applied by adding a data-theme attribute to the <html> element.
+   Default (no attribute) = Parchment.
+*/
+
+/* ─────────────────────────────────────────────
+   BASE TOKENS — shared across all themes
+   ───────────────────────────────────────────── */
+
+:root {
+  --font-sans:  'Inter', system-ui, -apple-system, sans-serif;
+  --font-serif: 'Georgia', 'Times New Roman', serif;
+  --font-mono:  'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+  --radius-sm:  4px;
+  --radius-md:  8px;
+  --radius-lg:  12px;
+  --radius-xl:  16px;
+  --radius-full: 9999px;
+
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md:  0 2px 8px rgba(0, 0, 0, 0.08);
+
+  --transition-fast:   100ms ease;
+  --transition-normal: 180ms ease;
+}
+
+/* ─────────────────────────────────────────────
+   PARCHMENT (default)
+   Warm off-white base · gold accent · covenant blue interactive
+   ───────────────────────────────────────────── */
+
+:root,
+[data-theme="parchment"] {
+  /* Surfaces */
+  --color-bg-page:       #F8F7F4;
+  --color-bg-primary:    #FFFFFF;
+  --color-bg-secondary:  #F1EFE8;
+  --color-bg-tertiary:   #E8E5DC;
+  --color-bg-hover:      #EDEADE;
+
+  /* Text */
+  --color-text-primary:   #1C1A17;
+  --color-text-secondary: #5F5E5A;
+  --color-text-muted:     #888780;
+  --color-text-hint:      #B4B2A9;
+  --color-text-inverse:   #F8F7F4;
+
+  /* Borders */
+  --color-border-subtle:  rgba(28, 26, 23, 0.10);
+  --color-border-default: rgba(28, 26, 23, 0.18);
+  --color-border-strong:  rgba(28, 26, 23, 0.30);
+
+  /* Accent — Scroll gold */
+  --color-accent:         #C9A96E;
+  --color-accent-hover:   #BA9455;
+  --color-accent-muted:   #FAF0DC;
+  --color-accent-text:    #3D2E10;
+
+  /* Interactive — Covenant blue */
+  --color-interactive:        #3B5E8C;
+  --color-interactive-hover:  #2D4A72;
+  --color-interactive-muted:  #E6EFF8;
+  --color-interactive-text:   #0C2F5C;
+
+  /* Semantic */
+  --color-success:        #3B6D11;
+  --color-success-muted:  #EAF3DE;
+  --color-warning:        #854F0B;
+  --color-warning-muted:  #FAEEDA;
+  --color-danger:         #A32D2D;
+  --color-danger-muted:   #FCEBEB;
+  --color-info:           #185FA5;
+  --color-info-muted:     #E6F1FB;
+
+  /* Scripture block */
+  --color-scripture-border: #C9A96E;
+  --color-scripture-bg:     #FDF9F2;
+  --color-scripture-text:   #2C2420;
+}
+
+/* ─────────────────────────────────────────────
+   MIDNIGHT
+   Deep dark base · slate blue accent
+   ───────────────────────────────────────────── */
+
+[data-theme="midnight"] {
+  --color-bg-page:       #0F1114;
+  --color-bg-primary:    #16181C;
+  --color-bg-secondary:  #1E2128;
+  --color-bg-tertiary:   #252830;
+  --color-bg-hover:      #2C2F38;
+
+  --color-text-primary:   #E8E6E1;
+  --color-text-secondary: #9C9A92;
+  --color-text-muted:     #6B6A64;
+  --color-text-hint:      #4A4944;
+  --color-text-inverse:   #16181C;
+
+  --color-border-subtle:  rgba(232, 230, 225, 0.06);
+  --color-border-default: rgba(232, 230, 225, 0.12);
+  --color-border-strong:  rgba(232, 230, 225, 0.22);
+
+  --color-accent:         #C9A96E;
+  --color-accent-hover:   #DDB97E;
+  --color-accent-muted:   #2A2218;
+  --color-accent-text:    #F5E4C0;
+
+  --color-interactive:        #7B8FBB;
+  --color-interactive-hover:  #95A8D0;
+  --color-interactive-muted:  #1A2035;
+  --color-interactive-text:   #C4D0E8;
+
+  --color-success:        #5DCAA5;
+  --color-success-muted:  #0D2820;
+  --color-warning:        #EF9F27;
+  --color-warning-muted:  #2A1E08;
+  --color-danger:         #E24B4A;
+  --color-danger-muted:   #2A0E0E;
+  --color-info:           #85B7EB;
+  --color-info-muted:     #0E1E32;
+
+  --color-scripture-border: #C9A96E;
+  --color-scripture-bg:     #1C1812;
+  --color-scripture-text:   #D4C9A8;
+}
+
+/* ─────────────────────────────────────────────
+   LINEN
+   Warm beige base · terracotta accent
+   ───────────────────────────────────────────── */
+
+[data-theme="linen"] {
+  --color-bg-page:       #F2EDE6;
+  --color-bg-primary:    #FAF7F3;
+  --color-bg-secondary:  #EDE5DB;
+  --color-bg-tertiary:   #E4D9CC;
+  --color-bg-hover:      #DDD0C0;
+
+  --color-text-primary:   #2C2420;
+  --color-text-secondary: #6B5A4E;
+  --color-text-muted:     #9C8878;
+  --color-text-hint:      #C0AD9E;
+  --color-text-inverse:   #FAF7F3;
+
+  --color-border-subtle:  rgba(44, 36, 32, 0.10);
+  --color-border-default: rgba(44, 36, 32, 0.18);
+  --color-border-strong:  rgba(44, 36, 32, 0.30);
+
+  --color-accent:         #8B5E3C;
+  --color-accent-hover:   #7A5033;
+  --color-accent-muted:   #F5E8DC;
+  --color-accent-text:    #3D1E0A;
+
+  --color-interactive:        #5C7A6A;
+  --color-interactive-hover:  #4A6858;
+  --color-interactive-muted:  #DFF0E8;
+  --color-interactive-text:   #1E3D30;
+
+  --color-success:        #3B6D11;
+  --color-success-muted:  #E4F0D4;
+  --color-warning:        #8B5E3C;
+  --color-warning-muted:  #F5E8DC;
+  --color-danger:         #A32D2D;
+  --color-danger-muted:   #F8E4E4;
+  --color-info:           #3B5E8C;
+  --color-info-muted:     #DCE8F4;
+
+  --color-scripture-border: #8B5E3C;
+  --color-scripture-bg:     #FBF5EE;
+  --color-scripture-text:   #2C2420;
+}
+
+/* ─────────────────────────────────────────────
+   SLATE
+   Cool white base · navy accent
+   ───────────────────────────────────────────── */
+
+[data-theme="slate"] {
+  --color-bg-page:       #EEF1F5;
+  --color-bg-primary:    #F8FAFC;
+  --color-bg-secondary:  #E8ECF2;
+  --color-bg-tertiary:   #DDE3EC;
+  --color-bg-hover:      #D2DAE6;
+
+  --color-text-primary:   #1E2A38;
+  --color-text-secondary: #4A5A6E;
+  --color-text-muted:     #7A8A9E;
+  --color-text-hint:      #AAB8C8;
+  --color-text-inverse:   #F8FAFC;
+
+  --color-border-subtle:  rgba(30, 42, 56, 0.08);
+  --color-border-default: rgba(30, 42, 56, 0.15);
+  --color-border-strong:  rgba(30, 42, 56, 0.28);
+
+  --color-accent:         #3B5E8C;
+  --color-accent-hover:   #2D4A72;
+  --color-accent-muted:   #DCE8F8;
+  --color-accent-text:    #0C2F5C;
+
+  --color-interactive:        #3B5E8C;
+  --color-interactive-hover:  #2D4A72;
+  --color-interactive-muted:  #DCE8F8;
+  --color-interactive-text:   #0C2F5C;
+
+  --color-success:        #2D6E4A;
+  --color-success-muted:  #D8F0E4;
+  --color-warning:        #7A5010;
+  --color-warning-muted:  #FAF0D8;
+  --color-danger:         #8C2828;
+  --color-danger-muted:   #F8E0E0;
+  --color-info:           #185FA5;
+  --color-info-muted:     #DCE8F8;
+
+  --color-scripture-border: #3B5E8C;
+  --color-scripture-bg:     #F0F5FC;
+  --color-scripture-text:   #1E2A38;
+}
+
+/* ─────────────────────────────────────────────
+   OLIVE
+   Neutral sage base · muted green accent
+   ───────────────────────────────────────────── */
+
+[data-theme="olive"] {
+  --color-bg-page:       #EDECE5;
+  --color-bg-primary:    #F5F4EE;
+  --color-bg-secondary:  #E6E4DA;
+  --color-bg-tertiary:   #DAD8CC;
+  --color-bg-hover:      #CECCBE;
+
+  --color-text-primary:   #252820;
+  --color-text-secondary: #565948;
+  --color-text-muted:     #888A78;
+  --color-text-hint:      #B0B19E;
+  --color-text-inverse:   #F5F4EE;
+
+  --color-border-subtle:  rgba(37, 40, 32, 0.09);
+  --color-border-default: rgba(37, 40, 32, 0.16);
+  --color-border-strong:  rgba(37, 40, 32, 0.28);
+
+  --color-accent:         #6B7A40;
+  --color-accent-hover:   #596833;
+  --color-accent-muted:   #E8EDD8;
+  --color-accent-text:    #2A3010;
+
+  --color-interactive:        #6B7A40;
+  --color-interactive-hover:  #596833;
+  --color-interactive-muted:  #E8EDD8;
+  --color-interactive-text:   #2A3010;
+
+  --color-success:        #3B6D11;
+  --color-success-muted:  #E4EDD4;
+  --color-warning:        #8C6E3B;
+  --color-warning-muted:  #F5EADA;
+  --color-danger:         #A32D2D;
+  --color-danger-muted:   #F4E4E4;
+  --color-info:           #3B5E8C;
+  --color-info-muted:     #DCE8F4;
+
+  --color-scripture-border: #6B7A40;
+  --color-scripture-bg:     #F2F4EA;
+  --color-scripture-text:   #252820;
+}
+
+/* ─────────────────────────────────────────────
+   UTILITY CLASSES
+   Used throughout the app for consistent styling
+   ───────────────────────────────────────────── */
+
+.workman-card {
+  background:    var(--color-bg-primary);
+  border:        1px solid var(--color-border-default);
+  border-radius: var(--radius-lg);
+  padding:       1rem 1.25rem;
+}
+
+.workman-surface {
+  background:    var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  padding:       0.75rem 1rem;
+}
+
+.workman-btn {
+  display:         inline-flex;
+  align-items:     center;
+  gap:             6px;
+  padding:         7px 16px;
+  border-radius:   var(--radius-md);
+  border:          1px solid var(--color-border-default);
+  background:      transparent;
+  color:           var(--color-text-primary);
+  font-size:       13px;
+  font-family:     var(--font-sans);
+  cursor:          pointer;
+  transition:      background var(--transition-fast),
+                   border-color var(--transition-fast);
+}
+
+.workman-btn:hover {
+  background: var(--color-bg-hover);
+  border-color: var(--color-border-strong);
+}
+
+.workman-btn-accent {
+  background:   var(--color-accent);
+  border-color: var(--color-accent);
+  color:        var(--color-accent-text);
+}
+
+.workman-btn-accent:hover {
+  background:   var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.workman-scripture {
+  font-family:   var(--font-serif);
+  font-style:    italic;
+  font-size:     14px;
+  line-height:   1.8;
+  color:         var(--color-scripture-text);
+  background:    var(--color-scripture-bg);
+  border-left:   3px solid var(--color-scripture-border);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding:       10px 14px;
+  margin:        12px 0;
+}
+
+.workman-badge {
+  display:       inline-block;
+  font-size:     11px;
+  padding:       2px 9px;
+  border-radius: var(--radius-full);
+}
+
+.workman-badge-accent {
+  background: var(--color-accent-muted);
+  color:      var(--color-accent-text);
+}
+
+.workman-badge-success {
+  background: var(--color-success-muted);
+  color:      var(--color-success);
+}
+
+.workman-badge-warning {
+  background: var(--color-warning-muted);
+  color:      var(--color-warning);
+}
+
+.workman-badge-danger {
+  background: var(--color-danger-muted);
+  color:      var(--color-danger);
+}
+
+.workman-badge-info {
+  background: var(--color-info-muted);
+  color:      var(--color-info);
+}
+
+/* Input fields */
+.workman-input {
+  width:         100%;
+  padding:       8px 12px;
+  border:        1px solid var(--color-border-default);
+  border-radius: var(--radius-md);
+  background:    var(--color-bg-primary);
+  color:         var(--color-text-primary);
+  font-size:     13px;
+  font-family:   var(--font-sans);
+  transition:    border-color var(--transition-fast),
+                 box-shadow var(--transition-fast);
+  outline:       none;
+}
+
+.workman-input:focus {
+  border-color: var(--color-accent);
+  box-shadow:   0 0 0 3px var(--color-accent-muted);
+}
+
+.workman-input::placeholder {
+  color: var(--color-text-hint);
+}
