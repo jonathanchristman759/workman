@@ -1,10 +1,10 @@
 {
   "version": "0.5.0",
-  "notes": "Bible reader, sermon tab memory, outline editor stability fix.",
+  "notes": "Bible reader, sermon tab memory, outline editor stability fix, auto-updater working.",
   "pub_date": "2026-05-26T00:00:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjZ4RVhVWjdBOWd1aVE5ajJ0a0NVVkJXNGt0TE1kbHFLVnZrVkZGU1FoN2JIUXJPY2tGQkJROHpMUmo2VFpkc0NSYW5uZkt6ejB5bC9lUC9Sc3FGS2dFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5NzY5NTg5CWZpbGU6V29ya21hbl8wLjUuMF94NjQtc2V0dXAuZXhlCm5MdGN0VnVNeXRYeTNDN1lnU3Vvb2FjWDMxMU0xVXhQeGFtb29JVnZQOGw1SDlzamd0TEI4TE11VjFCTlZ1Y0FkT3lYbGhaTVNzOHVrblA5Ri9oTkJnPT0K",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjM0NmNPUFB1eVRtSkl6YkhYWDZickRjRDgzVnI0YmsvWUhpN0pjMDV3U0pMZysxN1k0M2pGZ3hZTWNiUHJPR1JRMmVlZUhtYitJa0JCNktDcSt2bVFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5NzcyMDM3CWZpbGU6V29ya21hbl8wLjUuMF94NjQtc2V0dXAuZXhlCm9VdnFBY3UwODltV1R5dzdRKzZNaldGK2tQN3BHUE01SmhKQzg3ZmJsYk1TWVF4c1k3T1VqN3N4aG9lcHIrUXUvTC8xdXNrbEVtNUF1dEVGTThMUUN3PT0K",
       "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.5.0/Workman_0.5.0_x64-setup.exe"
     }
   }
