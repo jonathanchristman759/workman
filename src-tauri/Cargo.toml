@@ -1,6 +1,6 @@
 [package]
 name = "workman"
-version = "0.1.0"
+version = "0.3.0"
 description = "Workman — sermon preparation workspace for faithful pastors"
 authors = ["Workman"]
 license = ""
@@ -23,6 +23,8 @@ tauri-plugin-shell    = "2"
 tauri-plugin-dialog   = "2"
 tauri-plugin-fs       = "2"
 tauri-plugin-opener   = "2"
+tauri-plugin-updater = "2"
+tauri-plugin-process = "2"
 
 # ── Database ────────────────────────────────────
 # rusqlite with bundled SQLite — no system SQLite dependency required

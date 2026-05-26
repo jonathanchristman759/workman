@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Workman",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "identifier": "app.theworkman",
   "build": {
     "frontendDist": "../dist",
@@ -36,5 +36,13 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEJGRkYyQTQxNTk2Qjg5QjUKUldTMWlXdFpRU3IvdjhLa1M4aWE3dk9lNUZGWGhoWjhwMGwxV1JaZ1NTSVg2aXdKbVJYbVZRVUEK",
+      "endpoints": [
+        "https://github.com/jonathanchristman759/workman/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

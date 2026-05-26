@@ -6,6 +6,8 @@ import {
   useCallback,
 } from 'react'
 import { invoke } from '@tauri-apps/api/core'
+import { check } from '@tauri-apps/plugin-updater'
+import { relaunch } from '@tauri-apps/plugin-process'
 
 interface User {
   name:           string
@@ -45,7 +47,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(settings)
     } catch (err) {
       console.error('Failed to load settings:', err)
-      // Set default user if settings can't be loaded
       setUser({
         name:           '',
         language:       'EN',
@@ -58,8 +59,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  async function checkForUpdates() {
+  try {
+    const update = await check()
+    console.log('Update check result:', update)
+    if (update?.available) {
+      const yes = window.confirm(
+        `Workman ${update.version} is available.\n\n${update.body ?? ''}\n\nInstall now?`
+      ) 
+      if (yes) {
+        await update.downloadAndInstall()
+        await relaunch()
+      }
+    } else {
+      console.log('No update available or already on latest version')
+    }
+  } catch (err) {
+    console.error('Update check failed:', err)
+  }
+}
+
   useEffect(() => {
     refreshUser()
+    checkForUpdates()
   }, [refreshUser])
 
   const signOut = useCallback(async () => {
