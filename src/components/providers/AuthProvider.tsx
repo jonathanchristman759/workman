@@ -62,21 +62,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function checkForUpdates() {
   try {
     const update = await check()
-    console.log('Update check result:', update)
     if (update?.available) {
       const yes = window.confirm(
         `Workman ${update.version} is available.\n\n${update.body ?? ''}\n\nInstall now?`
-      ) 
+      )
       if (yes) {
         await update.downloadAndInstall()
         await relaunch()
       }
     } else {
-      console.log('No update available or already on latest version')
+      alert('Update check ran — no update available or already on latest.')
     }
   } catch (err: any) {
-    console.error('Update check failed:', err)
-    console.error('Error details:', JSON.stringify(err))
+    alert(`Update check failed: ${err}`)
   }
 }
 
