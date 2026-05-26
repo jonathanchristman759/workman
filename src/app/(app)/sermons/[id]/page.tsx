@@ -38,7 +38,7 @@ export interface Sermon {
   outline_json?: string | null
   manuscript?:  string | null
   notes?:       string | null
-  wordCount:    number
+  word_count:    number
   status:       string
   deliveryDate?: string | null
   series?:      { id: string; title: string } | null
@@ -52,8 +52,8 @@ function countWords(text: string): number {
   return text.trim().split(/\s+/).filter(Boolean).length
 }
 
-function estimateMinutes(wordCount: number): number {
-  return Math.round(wordCount / 130)
+function estimateMinutes(word_count: number): number {
+  return Math.round(word_count / 130)
 }
 
 function formatDeliveryDate(dateStr: string, language: string): string {
@@ -179,12 +179,12 @@ setSermon(data)
         }
 
         // Recalculate word count from current content
-        let wordCount = 0
-        if (updates.manuscript) wordCount = countWords(updates.manuscript)
-        else if (updates.notes)  wordCount = countWords(updates.notes)
+        let word_count = 0
+        if (updates.manuscript) word_count = countWords(updates.manuscript)
+        else if (updates.notes)  word_count = countWords(updates.notes)
         else if (updates.outline_json) {
           const pts = updates.outline_json ? JSON.parse(updates.outline_json).points ?? [] : []
-          wordCount = pts.reduce((sum: number, p: OutlinePoint) => {
+          word_count = pts.reduce((sum: number, p: OutlinePoint) => {
             return sum + countWords(p.text) +
               (p.subpoints ?? []).reduce((s: number, sp: string) => s + countWords(sp), 0)
           }, 0)
@@ -196,13 +196,13 @@ setSermon(data)
     outline_json: updates.outline_json ? JSON.stringify(updates.outline_json) : undefined,
     manuscript:   updates.manuscript,
     notes:        updates.notes,
-    word_count:   wordCount,
+    word_count:   word_count,
     autosave:     true,
   }
 })
 
         // Sync word count back to the sermon state
-        setSermon((prev) => prev ? { ...prev, ...updates, wordCount } : prev)
+        setSermon((prev) => prev ? { ...prev, ...updates, word_count } : prev)
         pendingContent.current = {}
         setSaveStatus('saved')
       } catch {
@@ -412,11 +412,11 @@ setSermon(data)
                   </span>
                 )}
 
-                {sermon.wordCount > 0 && (
+                {sermon.word_count > 0 && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-                    ~{sermon.wordCount.toLocaleString()}{' '}
+                    ~{sermon.word_count.toLocaleString()}{' '}
                     {language === 'ES' ? 'palabras' : 'words'}{' '}
-                    · ~{estimateMinutes(sermon.wordCount)} min
+                    · ~{estimateMinutes(sermon.word_count)} min
                   </span>
                 )}
 
