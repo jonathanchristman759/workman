@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useLanguage } from '@/hooks/useLanguage'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 interface NavItem {
   to:  string
@@ -22,6 +22,7 @@ const NAV_ITEMS: NavItem[] = [
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth()
+  const [showShortcuts, setShowShortcuts] = useState(false)
   const { language, toggleLanguage } = useLanguage()
   const { pathname } = useLocation()
   const router   = useNavigate()
@@ -51,7 +52,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [router])
-  
+
   if (loading) {
     return (
       <div style={{
@@ -201,6 +202,100 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             }}>ES</span>
           </button>
 
+{/* Keyboard shortcuts button */}
+          <button
+            onClick={() => setShowShortcuts(true)}
+            title={language === 'ES' ? 'Atajos de teclado' : 'Keyboard shortcuts'}
+            style={{
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+              width:          28,
+              height:         28,
+              borderRadius:   6,
+              border:         '1px solid var(--color-border-default)',
+              background:     'transparent',
+              color:          'var(--color-text-muted)',
+              cursor:         'pointer',
+              fontSize:       14,
+            }}
+          >
+            ⌨
+          </button>
+
+          {/* Shortcuts modal */}
+          {showShortcuts && (
+            <div
+              onClick={() => setShowShortcuts(false)}
+              style={{
+                position:       'fixed',
+                inset:          0,
+                background:     'rgba(0,0,0,0.4)',
+                zIndex:         1000,
+                display:        'flex',
+                alignItems:     'center',
+                justifyContent: 'center',
+              }}
+            >
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  background:   'var(--color-bg-primary)',
+                  border:       '1px solid var(--color-border-default)',
+                  borderRadius: 12,
+                  padding:      '24px 28px',
+                  minWidth:     380,
+                  maxWidth:     480,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+                  <h2 style={{ margin: 0, fontSize: 16, fontWeight: 600, color: 'var(--color-text-primary)', fontFamily: 'var(--font-serif)' }}>
+                    {language === 'ES' ? 'Atajos de teclado' : 'Keyboard shortcuts'}
+                  </h2>
+                  <button
+                    onClick={() => setShowShortcuts(false)}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 18, color: 'var(--color-text-muted)' }}
+                  >×</button>
+                </div>
+                {[
+                  { key: 'Ctrl + S',         desc: language === 'ES' ? 'Guardar' : 'Save' },
+                  { key: 'Ctrl + P',         desc: language === 'ES' ? 'Vista previa' : 'Toggle preview' },
+                  { key: 'Ctrl + E',         desc: language === 'ES' ? 'Exportar PDF' : 'Export PDF' },
+                  { key: 'Ctrl + Shift + P', desc: language === 'ES' ? 'Imprimir' : 'Print sermon' },
+                  { key: 'Escape',           desc: language === 'ES' ? 'Cerrar vista previa' : 'Close preview' },
+                  { key: 'Ctrl + N',         desc: language === 'ES' ? 'Nuevo sermón' : 'New sermon' },
+                  { key: 'Ctrl + /',         desc: language === 'ES' ? 'Abrir léxico' : 'Open lexicon' },
+                  { key: 'Enter',            desc: language === 'ES' ? 'Nuevo punto (esquema)' : 'New outline point' },
+                  { key: 'Tab',              desc: language === 'ES' ? 'Nuevo sub-punto (esquema)' : 'New sub-point' },
+                  { key: 'Ctrl + B',         desc: language === 'ES' ? 'Negrita' : 'Bold' },
+                  { key: 'Ctrl + I',         desc: language === 'ES' ? 'Cursiva' : 'Italic' },
+                  { key: 'Ctrl + U',         desc: language === 'ES' ? 'Subrayado' : 'Underline' },
+                  { key: 'Ctrl + Z',         desc: language === 'ES' ? 'Deshacer' : 'Undo' },
+                  { key: 'Ctrl + Y',         desc: language === 'ES' ? 'Rehacer' : 'Redo' },
+                ].map(({ key, desc }) => (
+                  <div key={key} style={{
+                    display:        'flex',
+                    justifyContent: 'space-between',
+                    alignItems:     'center',
+                    padding:        '7px 0',
+                    borderBottom:   '1px solid var(--color-border-subtle)',
+                  }}>
+                    <span style={{ fontSize: 13, color: 'var(--color-text-secondary)' }}>{desc}</span>
+                    <kbd style={{
+                      fontSize:     11,
+                      padding:      '3px 8px',
+                      borderRadius: 4,
+                      border:       '1px solid var(--color-border-default)',
+                      background:   'var(--color-bg-secondary)',
+                      color:        'var(--color-text-primary)',
+                      fontFamily:   'var(--font-sans)',
+                    }}>{key}</kbd>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
           {/* New sermon button */}
           <Link to="/sermons/new" style={{ textDecoration: 'none' }}>
             <button style={{
