@@ -217,6 +217,32 @@ setSermon(data)
       if (autoSaveTimer.current) clearTimeout(autoSaveTimer.current)
     }
   }, [])
+  // ── KEYBOARD SHORTCUTS ──
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.ctrlKey && e.key === 's') {
+        e.preventDefault()
+        scheduleSave()
+      }
+      if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault()
+        setPreviewMode(prev => !prev)
+      }
+      if (e.ctrlKey && e.key === 'e') {
+        e.preventDefault()
+        handleExport()
+      }
+      if (e.ctrlKey && e.shiftKey && e.key === 'P') {
+        e.preventDefault()
+        window.print()
+      }
+      if (e.key === 'Escape' && previewMode) {
+        setPreviewMode(false)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [previewMode, scheduleSave])
 
   // ── CONTENT CHANGE HANDLERS ───────────────
 

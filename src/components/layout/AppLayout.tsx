@@ -33,6 +33,25 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
     }
   }, [user, loading, router])
 
+  // ── APP-WIDE KEYBOARD SHORTCUTS ──
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      // Ctrl+N — new sermon
+      if (e.ctrlKey && e.key === 'n') {
+        e.preventDefault()
+        router('/sermons/new')
+      }
+      // Ctrl+/ — open lexicon
+      if (e.ctrlKey && e.key === '/') {
+        e.preventDefault()
+        router('/lexicon')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [router])
+  
   if (loading) {
     return (
       <div style={{
