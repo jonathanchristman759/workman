@@ -61,8 +61,8 @@ export function EditorSidePanel({
           <div>
             <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '0 0 12px', lineHeight: 1.6 }}>
               {language === 'ES'
-                ? `Abre el léxico completo para explorar las palabras originales en ${sermon.passageRef}.`
-                : `Open the full lexicon to explore the original language words in ${sermon.passageRef}.`}
+                ? `Abre el léxico completo para explorar las palabras originales en ${sermon.passage_ref}.`
+                : `Open the full lexicon to explore the original language words in ${sermon.passage_ref}.`}
             </p>
             <Link to={`/lexicon`} style={{ textDecoration: 'none' }}>
               <button className="workman-btn" style={{ width: '100%', justifyContent: 'center', fontSize: 11 }}>
