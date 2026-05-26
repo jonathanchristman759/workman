@@ -70,11 +70,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await update.downloadAndInstall()
         await relaunch()
       }
-    } else {
-      alert('Update check ran — no update available or already on latest.')
     }
-  } catch (err: any) {
-    alert(`Update check failed: ${err}`)
+  } catch (err) {
+    console.error('Update check failed:', err)
   }
 }
 
