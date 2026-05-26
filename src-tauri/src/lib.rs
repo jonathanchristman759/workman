@@ -66,6 +66,7 @@ pub fn run() {
             commands::bible::get_verse,
             commands::bible::get_passage,
             commands::bible::search_verses,
+            commands::bible::get_chapter_count,
 
             commands::illustrations::get_illustrations,
             commands::illustrations::get_illustration,

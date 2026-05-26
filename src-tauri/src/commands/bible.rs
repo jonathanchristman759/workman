@@ -109,3 +109,18 @@ pub fn search_verses(
 
     Ok(verses)
 }
+
+#[tauri::command]
+pub fn get_chapter_count(
+    state:       State<AppState>,
+    translation: String,
+    book:        String,
+) -> Result<i64> {
+    let conn = state.db.lock().map_err(|_| AppError::Database("Lock error".into()))?;
+
+    conn.query_row(
+        "SELECT MAX(chapter) FROM bible_verses WHERE translation = ?1 AND book = ?2",
+        rusqlite::params![translation, book],
+        |r| r.get(0),
+    ).map_err(|_| AppError::NotFound(format!("{} not found", book)))
+}

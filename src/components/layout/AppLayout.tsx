@@ -13,11 +13,12 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/dashboard',    label: 'Dashboard',     labelEs: 'Inicio'        },
-{ to: '/sermons',      label: 'Sermons',        labelEs: 'Sermones'      },
-{ to: '/lexicon',      label: 'Lexicon',        labelEs: 'Léxico'        },
-{ to: '/illustrations',label: 'Illustrations',  labelEs: 'Ilustraciones' },
-{ to: '/archive',      label: 'Archive',        labelEs: 'Archivo'       },
+  { to: '/dashboard',     label: 'Dashboard',     labelEs: 'Inicio'        },
+  { to: '/sermons',       label: 'Sermons',        labelEs: 'Sermones'      },
+  { to: '/bible',         label: 'Bible',          labelEs: 'Biblia'        },
+  { to: '/lexicon',       label: 'Lexicon',        labelEs: 'Léxico'        },
+  { to: '/illustrations', label: 'Illustrations',  labelEs: 'Ilustraciones' },
+  { to: '/archive',       label: 'Archive',        labelEs: 'Archivo'       },
 ]
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
@@ -295,7 +296,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           )}
-          
+
           {/* New sermon button */}
           <Link to="/sermons/new" style={{ textDecoration: 'none' }}>
             <button style={{

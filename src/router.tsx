@@ -10,6 +10,7 @@ import SettingsPage from './app/(app)/settings/page'
 import SermonEditorPage from './app/(app)/sermons/[id]/page'
 import NewSermonPage from './app/(app)/sermons/new/page'
 import SermonsPage from './app/(app)/sermons/page'
+import BiblePage from './app/(app)/bible/page'
 
 export function AppRouter() {
   return (
@@ -26,6 +27,7 @@ export function AppRouter() {
       <Route path="/archive/import" element={<ImportPage />} />
       <Route path="/settings"      element={<SettingsPage />} />
       <Route path="/sermons" element={<SermonsPage />} />
+      <Route path="/bible" element={<BiblePage />} />
     </Routes>
   )
 }

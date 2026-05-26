@@ -74,8 +74,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } else {
       console.log('No update available or already on latest version')
     }
-  } catch (err) {
+  } catch (err: any) {
     console.error('Update check failed:', err)
+    console.error('Error details:', JSON.stringify(err))
   }
 }
 

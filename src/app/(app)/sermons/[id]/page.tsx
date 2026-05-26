@@ -31,7 +31,7 @@ export interface OutlinePoint {
 export interface Sermon {
   id:           string
   title:        string
-  passageRef:   string
+  passage_ref: string
   book?:        string | null
   chapterStart?: number | null
   mode:         EditorMode
@@ -152,6 +152,7 @@ const [previewMode, setPreviewMode] = useState(false)
       try {
         const data = await invoke<Sermon>('get_sermon', { id: sermonId })
 setSermon(data)
+localStorage.setItem('lastSermonId', data.id)
       } catch {
         router('/sermons')
       } finally {
@@ -418,7 +419,7 @@ setSermon(data)
                 color:      'var(--color-text-secondary)',
                 margin:     '0 0 8px',
               }}>
-                {sermon.passageRef} · King James Version
+                {sermon.passage_ref} · King James Version
               </p>
 
               {/* Meta row */}
@@ -512,7 +513,7 @@ setSermon(data)
                   {sermon.title}
                 </h1>
                 <p style={{ fontSize: 14, fontStyle: 'italic', color: 'var(--color-text-secondary)', marginBottom: 4 }}>
-                  {sermon.passageRef} · King James Version
+                  {sermon.passage_ref} · King James Version
                 </p>
                 <hr style={{ border: 'none', borderTop: '1px solid var(--color-accent)', marginBottom: 24 }} />
                 {sermon.mode === 'OUTLINE' && sermon.outline_json && (
@@ -547,10 +548,11 @@ setSermon(data)
               <>
                 {sermon.mode === 'OUTLINE' && (
                   <OutlineEditor
-                    points={sermon.outline_json ? JSON.parse(sermon.outline_json).points ?? [] : []}
-                    onChange={handleOutlineChange}
-                    language={language}
-                  />
+  key={sermon.id}
+  points={sermon.outline_json ? JSON.parse(sermon.outline_json).points ?? [] : []}
+  onChange={handleOutlineChange}
+  language={language}
+/>
                 )}
                 {sermon.mode === 'MANUSCRIPT' && (
                   <ManuscriptEditor

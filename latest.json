@@ -1,11 +1,11 @@
 {
-  "version": "0.3.0",
-  "notes": "Auto-updater, sermon preview mode, full manuscript toolbar, performance improvements, outline persistence fix.",
-  "pub_date": "2026-05-25T00:00:00Z",
+  "version": "0.4.0",
+  "notes": "Keyboard shortcuts, shortcuts reference popup, PDF footer with pastor name and church, lexicon book dropdown with all 66 books, empty quotes fix in interlinear view.",
+  "pub_date": "2026-05-25T22:00:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjRLbU1GSHpQZXp4VGVUWlljV0xnbm1rRENUc0ZvcFZJVmFKclRPNnpQbGZ5RjR1aWFwNncyMTBzWi93WEdiamliNFFBVVZPOU1vZm92Q3V0RndWNXdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5NzYxODQzCWZpbGU6V29ya21hbl8wLjMuMF94NjQtc2V0dXAuZXhlCkhNU3hEWHdadUdsaXQyR1plSWg2b0s1Y0NPK0d1TkRyNFZrWUxVaGJJeDg4UjV0MUg4eHZDOHRWeElOdmpBK3d2N016TGppMUltYzhiemNLS2RnSkJBPT0K",
-      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.3.0/Workman_0.3.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjVLeFFSVFdiUzFiTytGUmN0N3h1dGRRTnZPTmpyU1lxaFRsMXdXL1UwOHF1UDNrWVg5ZmdxaE1JTUtIY0VvT1dKMG1aMUxrYXY0SWV4K1B1OFl5d2cwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5NzY2MzQyCWZpbGU6V29ya21hbl8wLjQuMF94NjQtc2V0dXAuZXhlCmNhdU9Rd3p5bUlyUTVObFE2c1JVT1lQVUJQWjg2ZGltKzhIaXlkSUI0ZmZ0VGtWeUZDUThCWkd5TnRuclpYb3BYdmJkaml1SHNlMXo5VGVQdWNzSEJ3PT0K",
+      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.4.0/Workman_0.4.0_x64-setup.exe"
     }
   }
 }

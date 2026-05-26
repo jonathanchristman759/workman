@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { invoke } from '@tauri-apps/api/core'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useLanguage } from '@/hooks/useLanguage'
@@ -18,6 +18,14 @@ export default function SermonsPage() {
   const { language } = useLanguage()
   const [sermons,  setSermons]  = useState<Sermon[]>([])
   const [loading,  setLoading]  = useState(true)
+const navigate = useNavigate()
+
+useEffect(() => {
+  const lastId = localStorage.getItem('lastSermonId')
+  if (lastId) {
+    navigate(`/sermons/${lastId}`)
+  }
+}, [navigate])
 
   useEffect(() => {
     async function load() {
