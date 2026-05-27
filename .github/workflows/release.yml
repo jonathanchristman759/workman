@@ -51,4 +51,5 @@ jobs:
             See the release notes below.
           releaseDraft: true
           prerelease: false
+          includeUpdaterJson: true
           args: --target ${{ matrix.target }}
