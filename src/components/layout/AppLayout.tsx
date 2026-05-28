@@ -144,30 +144,35 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <div style={{ display: 'flex', gap: 2 }}>
             {NAV_ITEMS.map((item) => {
-              const isActive = pathname.startsWith(item.to)
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  style={{
-                    fontSize:      13,
-                    padding:       '5px 10px',
-                    borderRadius:  6,
-                    textDecoration:'none',
-                    color:         isActive
-                      ? 'var(--color-text-primary)'
-                      : 'var(--color-text-muted)',
-                    background:    isActive
-                      ? 'var(--color-bg-secondary)'
-                      : 'transparent',
-                    fontWeight:    isActive ? 500 : 400,
-                    transition:    'background 100ms ease, color 100ms ease',
-                  }}
-                >
-                  {language === 'ES' ? item.labelEs : item.label}
-                </Link>
-              )
-            })}
+  const isActive = pathname.startsWith(item.to)
+  return (
+    <Link
+      key={item.to}
+      to={item.to}
+      onClick={() => {
+  if (item.to === '/sermons' && pathname.startsWith('/sermons/')) {
+    localStorage.removeItem('lastSermonId')
+  }
+}}
+      style={{
+        fontSize:      13,
+        padding:       '5px 10px',
+        borderRadius:  6,
+        textDecoration:'none',
+        color:         isActive
+          ? 'var(--color-text-primary)'
+          : 'var(--color-text-muted)',
+        background:    isActive
+          ? 'var(--color-bg-secondary)'
+          : 'transparent',
+        fontWeight:    isActive ? 500 : 400,
+        transition:    'background 100ms ease, color 100ms ease',
+      }}
+    >
+      {language === 'ES' ? item.labelEs : item.label}
+    </Link>
+  )
+})}
           </div>
         </div>
 
