@@ -4,8 +4,8 @@
 
 
 
-import { useState, FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect, FormEvent } from 'react'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useLanguage } from '@/hooks/useLanguage'
 import { invoke } from '@tauri-apps/api/core'
@@ -53,6 +53,28 @@ export default function NewSermonPage() {
   const [error,        setError]        = useState('')
   const [loading,      setLoading]      = useState(false)
   const [repeatWarning,setRepeatWarning]= useState<string | null>(null)
+  const [searchParams] = useSearchParams()
+
+// Pre-fill from "Start sermon from here" button
+useEffect(() => {
+  const passage = searchParams.get('passage')
+  if (passage) {
+    // Parse "John 10" or "John 10:1" format
+    const parts = passage.split(' ')
+    // Handle multi-word book names like "1 Corinthians"
+    const chapterPart = parts[parts.length - 1]
+    const hasChapter = /^\d+/.test(chapterPart) && parts.length > 1
+    if (hasChapter) {
+      const bookName = parts.slice(0, -1).join(' ')
+      const chapterVerse = chapterPart.split(':')
+      setBook(bookName)
+      setChapter(chapterVerse[0])
+      if (chapterVerse[1]) setVerseStart(chapterVerse[1])
+    } else {
+      setBook(passage)
+    }
+  }
+}, [searchParams])
 
   const books = language === 'ES' ? BIBLE_BOOKS_ES : BIBLE_BOOKS_EN
 
