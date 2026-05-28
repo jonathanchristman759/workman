@@ -276,9 +276,9 @@ localStorage.setItem('lastSermonId', data.id)
         handleExport()
       }
       if (e.ctrlKey && e.shiftKey && e.key === 'P') {
-        e.preventDefault()
-        window.print()
-      }
+  e.preventDefault()
+  handlePrint()
+}
       if (e.key === 'Escape' && previewMode) {
         setPreviewMode(false)
       }
@@ -346,6 +346,75 @@ localStorage.setItem('lastSermonId', data.id)
   }
 }
 
+function handlePrint() {
+  console.log('handlePrint called', sermon)
+  if (!sermon) return
+
+  const outlineHtml = sermon.outline_json
+    ? (JSON.parse(sermon.outline_json).points ?? []).map((p: OutlinePoint, i: number) => {
+        const roman = ['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]
+        const subs = (p.subpoints ?? []).map((s: string, j: number) =>
+          `<p style="margin:2px 0 2px 24px;font-size:14px;color:#444;">
+            ${'abcdefghij'[j]}. ${s}
+          </p>`
+        ).join('')
+        return `<div style="margin-bottom:16px;">
+          <p style="font-size:16px;font-weight:600;margin:0 0 4px;">
+            ${roman}. ${p.text}
+            ${p.verseRef ? `<span style="font-weight:400;color:#888;margin-left:8px;">(${p.verseRef})</span>` : ''}
+          </p>
+          ${subs}
+        </div>`
+      }).join('')
+    : ''
+
+  const bodyHtml =
+    sermon.mode === 'OUTLINE'
+      ? outlineHtml
+      : `<div style="font-size:15px;line-height:1.8;white-space:pre-wrap;">
+          ${sermon.mode === 'MANUSCRIPT' ? sermon.manuscript ?? '' : sermon.notes ?? ''}
+        </div>`
+
+  const html = `
+    <html>
+      <head>
+        <title>${sermon.title}</title>
+        <style>
+          body { font-family: Georgia, serif; max-width: 680px; margin: 40px auto; color: #111; }
+          h1   { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+          p.ref { font-style: italic; color: #555; margin: 0 0 8px; font-size: 14px; }
+          hr   { border: none; border-top: 1px solid #ccc; margin-bottom: 24px; }
+          @media print { body { margin: 0; } }
+        </style>
+      </head>
+      <body>
+        <h1>${sermon.title}</h1>
+        <p class="ref">${sermon.passage_ref} · ${language === 'ES' ? 'Reina-Valera 1960' : 'King James Version'}</p>
+        <hr/>
+        ${bodyHtml}
+      </body>
+    </html>
+  `
+
+console.log('bodyHtml', bodyHtml)
+console.log('win', window.open)
+  const printFrame = document.createElement('iframe')
+printFrame.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:none;'
+document.body.appendChild(printFrame)
+
+const doc = printFrame.contentDocument
+if (!doc) return
+
+doc.open()
+doc.write(html)
+doc.close()
+
+printFrame.onload = () => {
+  printFrame.contentWindow?.print()
+  setTimeout(() => document.body.removeChild(printFrame), 1000)
+}
+}
+
   // ─────────────────────────────────────────
   // RENDER
   // ─────────────────────────────────────────
@@ -398,9 +467,12 @@ localStorage.setItem('lastSermonId', data.id)
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <SaveIndicator status={saveStatus} language={language} />
 
-            <button className="workman-btn" onClick={handleExport} style={{ fontSize: 11, padding: '4px 10px' }}>
-              {language === 'ES' ? 'Exportar' : 'Export'}
-            </button>
+            <button className="workman-btn" onClick={handlePrint} style={{ fontSize: 11, padding: '4px 10px' }}>
+  {language === 'ES' ? 'Imprimir' : 'Print'}
+</button>
+<button className="workman-btn" onClick={handleExport} style={{ fontSize: 11, padding: '4px 10px' }}>
+  {language === 'ES' ? 'Exportar' : 'Export'}
+</button>
 
             {sermon.status !== 'DELIVERED' && (
               <button

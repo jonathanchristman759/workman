@@ -1,7 +1,7 @@
 {
   "version": "0.6.0",
-  "notes": "GitHub Actions automated builds for Windows and macOS, auto-updater improvements.",
-  "pub_date": "2026-05-27T00:00:00Z",
+  "notes": "- What's new popup on first launch after update\n- Settings: version number updates automatically\n- Settings: check for updates button\n- Settings: Logos connection button (coming soon)\n- Redo shortcut fixed (Ctrl+Shift+Z)\n- Settings gear icon replaces avatar\n- Print sermon — Print button and Ctrl+Shift+P shortcut\n- Dashboard progress percentage based on configurable target sermon length\n- Target length selector when creating a new sermon\n- Bug fix: sermons page redirect loop resolved",
+  "pub_date": "2026-05-28T00:00:00Z",
   "platforms": {
     "windows-x86_64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3Ivdnk0djVGWlE4OCtQOWswL0pxdnhqbFR2elUxTGhnVWxKTlo2K0taSUdpak9xejhqUWdNZTZQYi9XcDR4MzRIb0dlWnpiNGRqL01vZ2lVQStaUFlCRGd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTI4NzA2CWZpbGU6V29ya21hbl8wLjYuMF94NjQtc2V0dXAuZXhlCmZZY1FDZ0NXSWRqNTZqTXVwalZxSlp1SXVjVm5xY2NhWmQ0eDBGQW1FMVdnQXJkRERVdDAzWWdUczJwYkQ1RmovcDg3SEh1TUNyK3IyU1M3ZUpIRUJ3PT0K",

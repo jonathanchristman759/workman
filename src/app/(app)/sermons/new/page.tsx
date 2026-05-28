@@ -54,6 +54,7 @@ export default function NewSermonPage() {
   const [loading,      setLoading]      = useState(false)
   const [repeatWarning,setRepeatWarning]= useState<string | null>(null)
   const [searchParams] = useSearchParams()
+  const [targetMinutes, setTargetMinutes] = useState(30)
 
 // Pre-fill from "Start sermon from here" button
 useEffect(() => {
@@ -110,13 +111,14 @@ useEffect(() => {
   repeatWarning: { message: string; lastTitle: string } | null
 }>('create_sermon', {
   input: {
-    title:         title || passageRef,
-    passage_ref:   passageRef,
-    book:          book || undefined,
-    chapter_start: chapter ? parseInt(chapter) : undefined,
-    mode,
-    delivery_date: deliveryDate || undefined,
-  }
+  title:          title || passageRef,
+  passage_ref:    passageRef,
+  book:           book || undefined,
+  chapter_start:  chapter ? parseInt(chapter) : undefined,
+  mode,
+  delivery_date:  deliveryDate || undefined,
+  target_minutes: targetMinutes,
+}
 })
 
       if (data.repeatWarning) {
@@ -268,6 +270,28 @@ useEffect(() => {
                 style={inputStyle}
               />
             </div>
+
+<div>
+  <label style={labelStyle}>
+    {language === 'ES' ? 'Duración objetivo' : 'Target length'}{' '}
+    <span style={{ color: 'var(--color-text-hint)', fontWeight: 400 }}>
+      ({language === 'ES' ? 'opcional' : 'optional'})
+    </span>
+  </label>
+  <select
+    value={targetMinutes}
+    onChange={(e) => setTargetMinutes(Number(e.target.value))}
+    style={{ ...inputStyle, width: 200 }}
+  >
+    <option value={20}>20 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+    <option value={25}>25 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+    <option value={30}>30 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+    <option value={35}>35 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+    <option value={40}>40 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+    <option value={45}>45 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+    <option value={60}>60 {language === 'ES' ? 'minutos' : 'minutes'}</option>
+  </select>
+</div>
 
             {/* Mode */}
             <div>

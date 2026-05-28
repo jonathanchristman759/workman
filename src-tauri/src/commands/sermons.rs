@@ -33,6 +33,7 @@ pub struct Sermon {
     pub updated_at:    String,
     // Joined fields
     pub series_title:  Option<String>,
+    pub target_minutes: i64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -53,6 +54,7 @@ pub struct CreateSermonInput {
     pub mode:          Option<String>,
     pub series_id:     Option<String>,
     pub delivery_date: Option<String>,
+    pub target_minutes: Option<i64>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -71,6 +73,7 @@ pub struct UpdateSermonInput {
     pub series_id:     Option<String>,
     pub delivery_date: Option<String>,
     pub autosave:      Option<bool>,
+    pub target_minutes: Option<i64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -116,6 +119,7 @@ fn row_to_sermon(row: &rusqlite::Row) -> rusqlite::Result<Sermon> {
         created_at:    row.get(14)?,
         updated_at:    row.get(15)?,
         series_title:  row.get(16)?,
+        target_minutes: row.get(17)?,
     })
 }
 
@@ -125,7 +129,7 @@ const SERMON_SELECT: &str = "
            s.outline_json, s.manuscript, s.notes,
            s.word_count, s.status, s.delivery_date,
            s.created_at, s.updated_at,
-           sr.title as series_title
+           sr.title as series_title, s.target_minutes
     FROM sermons s
     LEFT JOIN series sr ON sr.id = s.series_id
 ";
@@ -270,14 +274,16 @@ pub fn create_sermon(
 
     conn.execute(
         "INSERT INTO sermons
-         (id, series_id, title, passage_ref, book, chapter_start, chapter_end,
-          mode, word_count, status, delivery_date, created_at, updated_at)
-         VALUES (?1,?2,?3,?4,?5,?6,?7,?8,0,'DRAFT',?9,?10,?11)",
-        rusqlite::params![
-            id, input.series_id, input.title, input.passage_ref,
-            input.book, input.chapter_start, input.chapter_end,
-            mode, input.delivery_date, ts, ts,
-        ],
+ (id, series_id, title, passage_ref, book, chapter_start, chapter_end,
+  mode, word_count, status, delivery_date, target_minutes, created_at, updated_at)
+ VALUES (?1,?2,?3,?4,?5,?6,?7,?8,0,'DRAFT',?9,?10,?11,?12)",
+rusqlite::params![
+    id, input.series_id, input.title, input.passage_ref,
+    input.book, input.chapter_start, input.chapter_end,
+    mode, input.delivery_date,
+    input.target_minutes.unwrap_or(30),
+    ts, ts,
+],
     )?;
 
     // Check for repeat passage
@@ -339,6 +345,7 @@ pub fn update_sermon(
     add_field!("word_count",    input.word_count);
     add_field!("status",        input.status.clone());
     add_field!("delivery_date", input.delivery_date.clone());
+    add_field!("target_minutes", input.target_minutes);
 
     // series_id can be set to null
     if input.series_id.is_some() {

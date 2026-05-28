@@ -1,14 +1,15 @@
 
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { invoke } from '@tauri-apps/api/core'
 import { useNavigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useTheme, Theme } from '@/components/providers/ThemeProvider'
+import { getVersion } from '@tauri-apps/api/app'
 
-type SettingsSection = 'profile' | 'appearance' | 'language' | 'lexicon' | 'data'
+type SettingsSection = 'profile' | 'appearance' | 'language' | 'lexicon' | 'data' | 'updates'
 
 export default function SettingsPage() {
   const { user, refreshUser }  = useAuth()
@@ -23,6 +24,11 @@ export default function SettingsPage() {
   const [fontSize,     setFontSize]     = useState(user?.editorFontSize ?? 16)
   const [saving,       setSaving]       = useState(false)
   const [saved,        setSaved]        = useState(false)
+  const [currentVersion, setCurrentVersion] = useState('…')
+
+useEffect(() => {
+  getVersion().then(setCurrentVersion)
+}, [])
 
   async function handleSave() {
     setSaving(true)
@@ -57,6 +63,7 @@ export default function SettingsPage() {
     { id: 'language',   label: 'Language',   labelEs: 'Idioma'     },
     { id: 'lexicon',    label: 'Lexicon',    labelEs: 'Léxico'     },
     { id: 'data',       label: 'Data',       labelEs: 'Datos'      },
+    { id: 'updates', label: 'Updates', labelEs: 'Actualizaciones' },
   ]
 
   return (
@@ -262,15 +269,21 @@ export default function SettingsPage() {
                         : (language === 'ES' ? 'Conecta tu cuenta de Logos para BDAG, BDB, HALOT' : 'Connect your Logos account for BDAG, BDB, HALOT')}
                     </p>
                   </div>
-                  <button style={{
-                    fontSize: 12, padding: '6px 14px', borderRadius: 6,
-                    border: '1px solid var(--color-info)', background: 'var(--color-info)',
-                    color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap',
-                  }}>
-                    {user?.logosConnected
-                      ? (language === 'ES' ? 'Desconectar' : 'Disconnect')
-                      : (language === 'ES' ? 'Conectar Logos' : 'Connect Logos')}
-                  </button>
+                  <button
+  onClick={() => alert(language === 'ES'
+    ? 'La integración con Logos estará disponible en una próxima versión.'
+    : 'Logos integration is coming in a future version of Workman.'
+  )}
+  style={{
+    fontSize: 12, padding: '6px 14px', borderRadius: 6,
+    border: '1px solid var(--color-info)', background: 'var(--color-info)',
+    color: '#fff', cursor: 'pointer', fontFamily: 'var(--font-sans)', whiteSpace: 'nowrap',
+  }}
+>
+  {user?.logosConnected
+    ? (language === 'ES' ? 'Desconectar' : 'Disconnect')
+    : (language === 'ES' ? 'Conectar Logos' : 'Connect Logos')}
+</button>
                 </div>
               </div>
             )}
@@ -327,6 +340,84 @@ export default function SettingsPage() {
               </div>
             )}
 
+{section === 'updates' && (
+  <div>
+    <p style={sectionTitleStyle}>{language === 'ES' ? 'Actualizaciones' : 'Updates'}</p>
+
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '12px 14px', border: '1px solid var(--color-border-subtle)',
+      borderRadius: 'var(--radius-md)', marginBottom: 8,
+    }}>
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', margin: '0 0 2px' }}>
+          {language === 'ES' ? 'Versión actual' : 'Current version'}
+        </p>
+        <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: 0 }}>
+  v{currentVersion}
+</p>
+      </div>
+    </div>
+
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '12px 14px', border: '1px solid var(--color-border-subtle)',
+      borderRadius: 'var(--radius-md)', marginBottom: 8,
+    }}>
+      <div>
+        <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', margin: '0 0 2px' }}>
+          {language === 'ES' ? 'Buscar actualizaciones' : 'Check for updates'}
+        </p>
+        <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: 0 }}>
+          {language === 'ES'
+            ? 'Comprueba si hay una nueva versión disponible'
+            : 'Check if a newer version of Workman is available'}
+        </p>
+      </div>
+      <button
+        className="workman-btn"
+        style={{ fontSize: 12, whiteSpace: 'nowrap' }}
+        onClick={async () => {
+          try {
+            const { check } = await import('@tauri-apps/plugin-updater')
+            const { relaunch } = await import('@tauri-apps/plugin-process')
+            const update = await check()
+            if (update?.available) {
+              const yes = window.confirm(
+                `Workman ${update.version} is available.\n\nInstall now?`
+              )
+              if (yes) {
+                await update.downloadAndInstall()
+                await relaunch()
+              }
+            } else {
+              alert(language === 'ES' ? 'Ya tienes la última versión.' : 'You are on the latest version.')
+            }
+          } catch (err) {
+            console.error('Update check failed:', err)
+            alert(language === 'ES' ? 'Error al buscar actualizaciones.' : 'Failed to check for updates.')
+          }
+        }}
+      >
+        {language === 'ES' ? '↺ Buscar' : '↺ Check'}
+      </button>
+    </div>
+
+    <div style={{
+      padding: '12px 14px', border: '1px solid var(--color-border-subtle)',
+      borderRadius: 'var(--radius-md)',
+    }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: 'var(--color-text-primary)', margin: '0 0 2px' }}>
+        {language === 'ES' ? 'Actualizaciones automáticas' : 'Automatic updates'}
+      </p>
+      <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: 0 }}>
+        {language === 'ES'
+          ? 'Workman comprueba actualizaciones automáticamente al iniciar'
+          : 'Workman automatically checks for updates on launch'}
+      </p>
+    </div>
+  </div>
+)}
           </div>
         </div>
       </div>

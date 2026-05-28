@@ -81,6 +81,7 @@ interface Sermon {
   delivery_date: string | null
   updated_at:    string
   series_title?: string | null
+  target_minutes: number
 }
 
 interface DashboardStats {
@@ -120,8 +121,9 @@ function formatDate(dateStr: string): string {
 }
 
 function outlineProgress(sermon: Sermon): number {
-  // Rough heuristic — word count relative to a typical 30-min sermon (~3,900 words)
-  return Math.min(Math.round((sermon.word_count / 3900) * 100), 100)
+  const minutes = sermon.target_minutes > 0 ? sermon.target_minutes : 30
+  const targetWords = minutes * 130
+  return Math.min(Math.round((sermon.word_count / targetWords) * 100), 100)
 }
 
 // ─────────────────────────────────────────────

@@ -5,6 +5,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/components/providers/AuthProvider'
 import { useLanguage } from '@/hooks/useLanguage'
 import { useEffect, useState } from 'react'
+import { getVersion } from '@tauri-apps/api/app'
+import { WhatsNewModal } from '@/components/WhatsNewModal'
 
 interface NavItem {
   to:  string
@@ -23,24 +25,29 @@ const NAV_ITEMS: NavItem[] = [
 
 function VersionIndicator({ language }: { language: string }) {
   const [status, setStatus] = useState<'checking' | 'latest' | 'update'>('checking')
-  const currentVersion = '0.6.0'
+  const [currentVersion, setCurrentVersion] = useState('')
 
-  useEffect(() => {
-    async function checkVersion() {
-      try {
-        const res = await fetch('https://raw.githubusercontent.com/jonathanchristman759/workman/main/latest.json')
-        const data = await res.json()
-        if (data.version && data.version !== currentVersion) {
-          setStatus('update')
-        } else {
-          setStatus('latest')
-        }
-      } catch {
+useEffect(() => {
+  getVersion().then(setCurrentVersion)
+}, [])
+
+useEffect(() => {
+  if (!currentVersion) return  // wait until version is loaded
+  async function checkVersion() {
+    try {
+      const res = await fetch('https://raw.githubusercontent.com/jonathanchristman759/workman/main/latest.json')
+      const data = await res.json()
+      if (data.version && data.version !== currentVersion) {
+        setStatus('update')
+      } else {
         setStatus('latest')
       }
+    } catch {
+      setStatus('latest')
     }
-    checkVersion()
-  }, [])
+  }
+  checkVersion()
+}, [currentVersion])  // runs when currentVersion is set
 
   async function handleClick() {
     if (status !== 'update') return
@@ -357,7 +364,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   { key: 'Ctrl + I',         desc: language === 'ES' ? 'Cursiva' : 'Italic' },
                   { key: 'Ctrl + U',         desc: language === 'ES' ? 'Subrayado' : 'Underline' },
                   { key: 'Ctrl + Z',         desc: language === 'ES' ? 'Deshacer' : 'Undo' },
-                  { key: 'Ctrl + Y',         desc: language === 'ES' ? 'Rehacer' : 'Redo' },
+                  { key: 'Ctrl + Shift + Z', desc: language === 'ES' ? 'Rehacer' : 'Redo' },
                 ].map(({ key, desc }) => (
                   <div key={key} style={{
                     display:        'flex',
@@ -406,24 +413,23 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           <div style={{ position: 'relative' }}>
             <Link to="/settings" style={{ textDecoration: 'none' }}>
               <div
-                title={`${user.name} · Settings`}
-                style={{
-                  width:          30,
-                  height:         30,
-                  borderRadius:   '50%',
-                  background:     'var(--color-accent-muted)',
-                  color:          'var(--color-accent-text)',
-                  display:        'flex',
-                  alignItems:     'center',
-                  justifyContent: 'center',
-                  fontSize:       12,
-                  fontWeight:     500,
-                  cursor:         'pointer',
-                  border:         '1px solid var(--color-border-default)',
-                }}
-              >
-                {initials}
-              </div>
+  title={language === 'ES' ? 'Configuración' : 'Settings'}
+  style={{
+    width:          28,
+    height:         28,
+    borderRadius:   6,
+    background:     'transparent',
+    color:          'var(--color-text-muted)',
+    display:        'flex',
+    alignItems:     'center',
+    justifyContent: 'center',
+    fontSize:       16,
+    cursor:         'pointer',
+    border:         '1px solid var(--color-border-default)',
+  }}
+>
+  ⚙
+</div>
             </Link>
           </div>
 
@@ -445,6 +451,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
 {/* ── VERSION INDICATOR ── */}
       <VersionIndicator language={language} />
+      <WhatsNewModal />
     </div>
   )
 }

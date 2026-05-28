@@ -23,7 +23,8 @@ const navigate = useNavigate()
 useEffect(() => {
   const lastId = localStorage.getItem('lastSermonId')
   if (lastId) {
-    navigate(`/sermons/${lastId}`)
+    localStorage.removeItem('lastSermonId')
+    navigate(`/sermons/${lastId}`, { replace: true })
   }
 }, [navigate])
 

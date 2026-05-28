@@ -325,6 +325,10 @@ pub fn init(path: &Path) -> Result<Connection> {
     conn.execute_batch(SCHEMA)
         .map_err(|e| AppError::Database(e.to_string()))?;
 
+    // Migrations — add new columns to existing tables
+let _ = conn.execute_batch("
+    ALTER TABLE sermons ADD COLUMN target_minutes INTEGER NOT NULL DEFAULT 30;
+");
     // Create triggers
     conn.execute_batch(TRIGGERS)
         .map_err(|e| AppError::Database(e.to_string()))?;
