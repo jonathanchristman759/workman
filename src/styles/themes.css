@@ -6,6 +6,26 @@
 */
 
 /* ─────────────────────────────────────────────
+   VIEWPORT LOCK — makes the app feel native
+   ───────────────────────────────────────────── */
+
+html, body {
+  margin:      0;
+  padding:     0;
+  height:      100%;
+  overflow:    hidden;
+  font-family: var(--font-sans);
+}
+
+#root {
+  height:      100vh;
+  width:       100vw;
+  overflow:    hidden;
+  display:     flex;
+  flex-direction: column;
+}
+
+/* ─────────────────────────────────────────────
    BASE TOKENS — shared across all themes
    ───────────────────────────────────────────── */
 

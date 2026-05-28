@@ -81,7 +81,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div style={{
-      minHeight:  '100vh',
+  height:     '100vh',
+  display:    'flex',
+  flexDirection: 'column',
       background: 'var(--color-bg-page)',
       color:      'var(--color-text-primary)',
       fontFamily: 'var(--font-sans)',
@@ -352,9 +354,13 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* ── PAGE CONTENT ── */}
       <main style={{
-        maxWidth: 1200,
-        margin:   '0 auto',
-        padding:  '24px 24px',
+        flex:      1,
+        overflowY: 'auto',
+        padding:   '24px 24px',
+        maxWidth:  1200,
+        margin:    '0 auto',
+        width:     '100%',
+        boxSizing: 'border-box',
       }}>
         {children}
       </main>
