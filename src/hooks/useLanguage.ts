@@ -9,7 +9,8 @@ type Language = 'EN' | 'ES'
 
 // Module-level singleton so all components share one language state
 // without needing a separate context provider
-let _language: Language = 'EN'
+let _language: Language = (localStorage.getItem('workman-language') as Language) ?? 'EN'
+console.log('useLanguage init — stored language:', localStorage.getItem('workman-language'), '— using:', _language)
 const _listeners = new Set<() => void>()
 
 function notify() {
@@ -27,9 +28,16 @@ export function useLanguage() {
     return () => { _listeners.delete(handler) }
   }, [])
 
-  // Sync from user preference on mount
+  // Sync from user preference only on first load
   useEffect(() => {
-    if (user?.language && user.language !== _language) {
+    const stored = localStorage.getItem('workman-language') as Language | null
+    if (stored) {
+      if (stored !== _language) {
+        _language = stored
+        i18n.changeLanguage(_language.toLowerCase())
+        notify()
+      }
+    } else if (user?.language && user.language !== _language) {
       _language = user.language as Language
       i18n.changeLanguage(_language.toLowerCase())
       notify()
