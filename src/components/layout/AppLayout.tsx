@@ -21,6 +21,84 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/archive',       label: 'Archive',        labelEs: 'Archivo'       },
 ]
 
+function VersionIndicator({ language }: { language: string }) {
+  const [status, setStatus] = useState<'checking' | 'latest' | 'update'>('checking')
+  const currentVersion = '0.6.0'
+
+  useEffect(() => {
+    async function checkVersion() {
+      try {
+        const res = await fetch('https://raw.githubusercontent.com/jonathanchristman759/workman/main/latest.json')
+        const data = await res.json()
+        if (data.version && data.version !== currentVersion) {
+          setStatus('update')
+        } else {
+          setStatus('latest')
+        }
+      } catch {
+        setStatus('latest')
+      }
+    }
+    checkVersion()
+  }, [])
+
+  async function handleClick() {
+    if (status !== 'update') return
+    try {
+      const { check } = await import('@tauri-apps/plugin-updater')
+      const { relaunch } = await import('@tauri-apps/plugin-process')
+      const update = await check()
+      if (update?.available) {
+        const yes = window.confirm(
+          `Workman ${update.version} is available.\n\nInstall now?`
+        )
+        if (yes) {
+          await update.downloadAndInstall()
+          await relaunch()
+        }
+      }
+    } catch (err) {
+      console.error('Update failed:', err)
+    }
+  }
+
+  return (
+    <div
+      onClick={handleClick}
+      style={{
+        position:   'fixed',
+        bottom:     8,
+        left:       12,
+        fontSize:   10,
+        fontFamily: 'var(--font-sans)',
+        color:      status === 'update' ? 'var(--color-accent)' : 'var(--color-text-hint)',
+        display:    'flex',
+        alignItems: 'center',
+        gap:        4,
+        cursor:     status === 'update' ? 'pointer' : 'default',
+        zIndex:     50,
+      }}
+      title={status === 'update'
+        ? (language === 'ES' ? 'Actualización disponible' : 'Update available')
+        : (language === 'ES' ? 'Versión actual' : 'Up to date')}
+    >
+      <span style={{
+        width:        6,
+        height:       6,
+        borderRadius: '50%',
+        background:   status === 'checking' ? 'var(--color-text-hint)'
+          : status === 'update' ? 'var(--color-accent)'
+          : '#6a9a5a',
+        display:      'inline-block',
+      }} />
+      v{currentVersion}
+      {status === 'update' && (
+        <span> · {language === 'ES' ? 'actualización disponible' : 'update available'}</span>
+      )}
+    </div>
+  )
+}
+
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, signOut } = useAuth()
   const [showShortcuts, setShowShortcuts] = useState(false)
@@ -365,6 +443,8 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         {children}
       </main>
 
+{/* ── VERSION INDICATOR ── */}
+      <VersionIndicator language={language} />
     </div>
   )
 }
