@@ -10,6 +10,64 @@ import { useAuth } from '@/components/providers/AuthProvider'
 import { useLanguage } from '@/hooks/useLanguage'
 import { invoke } from '@tauri-apps/api/core'
 
+const EN_TO_ES: Record<string, string> = {
+  'Genesis':'Génesis','Exodus':'Éxodo','Leviticus':'Levítico','Numbers':'Números',
+  'Deuteronomy':'Deuteronomio','Joshua':'Josué','Judges':'Jueces','Ruth':'Rut',
+  '1 Samuel':'1 Samuel','2 Samuel':'2 Samuel','1 Kings':'1 Reyes','2 Kings':'2 Reyes',
+  '1 Chronicles':'1 Crónicas','2 Chronicles':'2 Crónicas','Ezra':'Esdras',
+  'Nehemiah':'Nehemías','Esther':'Ester','Job':'Job','Psalms':'Salmos',
+  'Proverbs':'Proverbios','Ecclesiastes':'Eclesiastés','Song of Solomon':'Cantares',
+  'Isaiah':'Isaías','Jeremiah':'Jeremías','Lamentations':'Lamentaciones',
+  'Ezekiel':'Ezequiel','Daniel':'Daniel','Hosea':'Oseas','Joel':'Joel','Amos':'Amós',
+  'Obadiah':'Abdías','Jonah':'Jonás','Micah':'Miqueas','Nahum':'Nahúm',
+  'Habakkuk':'Habacuc','Zephaniah':'Sofonías','Haggai':'Hageo','Zechariah':'Zacarías',
+  'Malachi':'Malaquías','Matthew':'Mateo','Mark':'Marcos','Luke':'Lucas','John':'Juan',
+  'Acts':'Hechos','Romans':'Romanos','1 Corinthians':'1 Corintios',
+  '2 Corinthians':'2 Corintios','Galatians':'Gálatas','Ephesians':'Efesios',
+  'Philippians':'Filipenses','Colossians':'Colosenses',
+  '1 Thessalonians':'1 Tesalonicenses','2 Thessalonians':'2 Tesalonicenses',
+  '1 Timothy':'1 Timoteo','2 Timothy':'2 Timoteo','Titus':'Tito','Philemon':'Filemón',
+  'Hebrews':'Hebreos','James':'Santiago','1 Peter':'1 Pedro','2 Peter':'2 Pedro',
+  '1 John':'1 Juan','2 John':'2 Juan','3 John':'3 Juan','Jude':'Judas',
+  'Revelation':'Apocalipsis',
+}
+
+const ES_TO_EN: Record<string, string> = {
+  'Génesis':'Genesis','Éxodo':'Exodus','Levítico':'Leviticus','Números':'Numbers',
+  'Deuteronomio':'Deuteronomy','Josué':'Joshua','Jueces':'Judges','Rut':'Ruth',
+  '1 Reyes':'1 Kings','2 Reyes':'2 Kings','1 Crónicas':'1 Chronicles','2 Crónicas':'2 Chronicles',
+  'Esdras':'Ezra','Nehemías':'Nehemiah','Ester':'Esther','Salmos':'Psalms',
+  'Proverbios':'Proverbs','Eclesiastés':'Ecclesiastes','Cantares':'Song of Solomon',
+  'Isaías':'Isaiah','Jeremías':'Jeremiah','Lamentaciones':'Lamentations',
+  'Ezequiel':'Ezekiel','Oseas':'Hosea','Amós':'Amos','Abdías':'Obadiah',
+  'Jonás':'Jonah','Miqueas':'Micah','Nahúm':'Nahum','Habacuc':'Habakkuk',
+  'Sofonías':'Zephaniah','Hageo':'Haggai','Zacarías':'Zechariah','Malaquías':'Malachi',
+  'Mateo':'Matthew','Marcos':'Mark','Lucas':'Luke','Juan':'John','Hechos':'Acts',
+  'Romanos':'Romans','1 Corintios':'1 Corinthians','2 Corintios':'2 Corinthians',
+  'Gálatas':'Galatians','Efesios':'Ephesians','Filipenses':'Philippians',
+  'Colosenses':'Colossians','1 Tesalonicenses':'1 Thessalonians','2 Tesalonicenses':'2 Thessalonians',
+  '1 Timoteo':'1 Timothy','2 Timoteo':'2 Timothy','Tito':'Titus','Filemón':'Philemon',
+  'Hebreos':'Hebrews','Santiago':'James','1 Pedro':'1 Peter','2 Pedro':'2 Peter',
+  '1 Juan':'1 John','2 Juan':'2 John','3 Juan':'3 John','Judas':'Jude',
+  'Apocalipsis':'Revelation',
+}
+
+function translateRef(ref: string, language: string): string {
+  const words = ref.split(' ')
+  // Try multi-word book names first (e.g. "1 Kings")
+  for (let len = 3; len >= 1; len--) {
+    const bookPart = words.slice(0, len).join(' ')
+    const rest = words.slice(len).join(' ')
+    if (language === 'ES' && EN_TO_ES[bookPart]) {
+      return `${EN_TO_ES[bookPart]}${rest ? ' ' + rest : ''}`
+    }
+    if (language === 'EN' && ES_TO_EN[bookPart]) {
+      return `${ES_TO_EN[bookPart]}${rest ? ' ' + rest : ''}`
+    }
+  }
+  return ref
+}
+
 // ─────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────
@@ -200,7 +258,7 @@ setData({
                         color:      'var(--color-text-secondary)',
                         margin:     '3px 0 0',
                       }}>
-                        {data.activeSermon.passage_ref}
+                        {translateRef(data.activeSermon.passage_ref, language)}
                       </p>
                     </div>
                     <span className="workman-badge workman-badge-success">
@@ -305,7 +363,7 @@ setData({
                         {language === 'ES' ? 'Continuar editando' : 'Continue editing'}
                       </button>
                     </Link>
-                    <Link to={`/lexicon?ref=${encodeURIComponent(data.activeSermon.passage_ref)}`}
+                    <Link to={`/lexicon?ref=${encodeURIComponent(translateRef(data.activeSermon.passage_ref, language))}`}
                       style={{ flex: 1, textDecoration: 'none' }}>
                       <button className="workman-btn" style={{ width: '100%', justifyContent: 'center', fontSize: 12 }}>
                         {language === 'ES' ? 'Abrir en léxico' : 'Open in lexicon'}
@@ -358,8 +416,8 @@ setData({
                   }}>
                     <p style={{ fontSize: 11, color: 'var(--color-text-muted)', margin: '0 0 5px' }}>
                       {language === 'ES'
-                        ? `Sugerido para ${data.activeSermon.passage_ref}`
-                        : `Suggested for ${data.activeSermon.passage_ref}`}
+                        ? `Sugerido para ${translateRef(data.activeSermon.passage_ref, language)}`
+: `Suggested for ${translateRef(data.activeSermon.passage_ref, language)}`}
                     </p>
                     <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', margin: '0 0 3px' }}>
                       · {language === 'ES'
@@ -460,7 +518,7 @@ setData({
                             {sermon.title}
                           </p>
                           <p style={{ fontSize: 10, color: 'var(--color-text-muted)', margin: '1px 0 0' }}>
-                            {sermon.delivery_date ? formatDate(sermon.delivery_date) : sermon.passage_ref}
+                            {sermon.delivery_date ? formatDate(sermon.delivery_date) : translateRef(sermon.passage_ref, language)}
                           </p>
                         </div>
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
