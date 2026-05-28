@@ -1,11 +1,11 @@
 {
-  "version": "0.5.0",
-  "notes": "Bible reader, sermon tab memory, outline editor stability fix, auto-updater working.",
-  "pub_date": "2026-05-26T00:00:00Z",
+  "version": "0.6.0",
+  "notes": "GitHub Actions automated builds for Windows and macOS, auto-updater improvements.",
+  "pub_date": "2026-05-27T00:00:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjM0NmNPUFB1eVRtSkl6YkhYWDZickRjRDgzVnI0YmsvWUhpN0pjMDV3U0pMZysxN1k0M2pGZ3hZTWNiUHJPR1JRMmVlZUhtYitJa0JCNktDcSt2bVFjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5NzcyMDM3CWZpbGU6V29ya21hbl8wLjUuMF94NjQtc2V0dXAuZXhlCm9VdnFBY3UwODltV1R5dzdRKzZNaldGK2tQN3BHUE01SmhKQzg3ZmJsYk1TWVF4c1k3T1VqN3N4aG9lcHIrUXUvTC8xdXNrbEVtNUF1dEVGTThMUUN3PT0K",
-      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.5.0/Workman_0.5.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3Ivdnk0djVGWlE4OCtQOWswL0pxdnhqbFR2elUxTGhnVWxKTlo2K0taSUdpak9xejhqUWdNZTZQYi9XcDR4MzRIb0dlWnpiNGRqL01vZ2lVQStaUFlCRGd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTI4NzA2CWZpbGU6V29ya21hbl8wLjYuMF94NjQtc2V0dXAuZXhlCmZZY1FDZ0NXSWRqNTZqTXVwalZxSlp1SXVjVm5xY2NhWmQ0eDBGQW1FMVdnQXJkRERVdDAzWWdUczJwYkQ1RmovcDg3SEh1TUNyK3IyU1M3ZUpIRUJ3PT0K",
+      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.6.0/Workman_0.6.0_x64-setup.exe"
     }
   }
 }
