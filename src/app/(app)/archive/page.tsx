@@ -106,7 +106,8 @@ setStats({
     none:     { bg: 'var(--color-bg-secondary)',   text: 'var(--color-text-hint)'},
   }
 
-  const years = Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i)
+  const currentYear = new Date().getFullYear()
+const years = Array.from({ length: currentYear - 1924 }, (_, i) => currentYear - i)
 
   return (
     <AppLayout>
