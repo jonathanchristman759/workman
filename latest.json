@@ -1,11 +1,15 @@
 {
-  "version": "0.6.0",
+  "version": "0.7.0",
   "notes": "- What's new popup on first launch after update\n- Settings: version number updates automatically\n- Settings: check for updates button\n- Settings: Logos connection button (coming soon)\n- Redo shortcut fixed (Ctrl+Shift+Z)\n- Settings gear icon replaces avatar\n- Print sermon — Print button and Ctrl+Shift+P shortcut\n- Dashboard progress percentage based on configurable target sermon length\n- Target length selector when creating a new sermon\n- Bug fix: sermons page redirect loop resolved",
   "pub_date": "2026-05-28T00:00:00Z",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3Ivdnk0djVGWlE4OCtQOWswL0pxdnhqbFR2elUxTGhnVWxKTlo2K0taSUdpak9xejhqUWdNZTZQYi9XcDR4MzRIb0dlWnpiNGRqL01vZ2lVQStaUFlCRGd3PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTI4NzA2CWZpbGU6V29ya21hbl8wLjYuMF94NjQtc2V0dXAuZXhlCmZZY1FDZ0NXSWRqNTZqTXVwalZxSlp1SXVjVm5xY2NhWmQ0eDBGQW1FMVdnQXJkRERVdDAzWWdUczJwYkQ1RmovcDg3SEh1TUNyK3IyU1M3ZUpIRUJ3PT0K",
-      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.6.0/Workman_0.6.0_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjloVlhMYXpkWlpFc3Rqa1dDdWNNRmNNUEVjVkx5ejlQc21xQnJMVXNUcmx0TEZKTU1rR0Y3c2RNaUJXSWdOZkNnUEVVM2lLRDcrWFZMN0dSMWhuZ1FJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTQyMzQzCWZpbGU6V29ya21hbl8wLjcuMF94NjQtc2V0dXAuZXhlCmhzbVlBakFjZ1JTQzdDbXJsaUh1SE5MYlgwOS9QYm9CeTQxZE1vUU1ha2ppTk5WdjZYamF6bnh0djFtR2VsRDNhanVQOElKUnhkR1pIN3MxcU0ySkJBPT0K",
+      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.7.0/Workman_0.7.0_x64-setup.exe"
+    },
+    "windows-x86_64-msi": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTMWlXdFpRU3IvdjVYQnBHNm53Zk1hRXlOZVBqZk1IWDZmdS9YV0ZJL3JncTlUK3o4eUVURHdDOVQvZHNGZ2xabkk3L0R0TWZjMWxKRXl0WUtDQ3ZtNTNIOXp6MjZxaXdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzc5OTQyMzgzCWZpbGU6V29ya21hbl8wLjcuMF94NjRfZW4tVVMubXNpCmU0Qm94eGJBK2h2ZDJJUkw3d2hiZldwa1JFd2tzZFRmKzJVVXlBRk1QOFN5ekYxL1ZOazVlUW5vdkFiTWN4eHAwL0oxcWY2ODVFdzZEdC9UdzlETUJ3PT0K",
+      "url": "https://github.com/jonathanchristman759/workman/releases/download/v0.7.0/Workman_0.7.0_x64_en-US.msi"
     }
   }
 }
