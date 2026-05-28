@@ -15,6 +15,48 @@ import { ManuscriptEditor } from '@/components/editor/ManuscriptEditor'
 import { NotesEditor } from '@/components/editor/NotesEditor'
 import { EditorSidePanel } from '@/components/editor/EditorSidePanel'
 
+const EN_TO_ES: Record<string, string> = {
+  'Genesis':'Génesis','Exodus':'Éxodo','Leviticus':'Levítico','Numbers':'Números',
+  'Deuteronomy':'Deuteronomio','Joshua':'Josué','Judges':'Jueces','Ruth':'Rut',
+  '1 Samuel':'1 Samuel','2 Samuel':'2 Samuel','1 Kings':'1 Reyes','2 Kings':'2 Reyes',
+  '1 Chronicles':'1 Crónicas','2 Chronicles':'2 Crónicas','Ezra':'Esdras',
+  'Nehemiah':'Nehemías','Esther':'Ester','Job':'Job','Psalms':'Salmos',
+  'Proverbs':'Proverbios','Ecclesiastes':'Eclesiastés','Song of Solomon':'Cantares',
+  'Isaiah':'Isaías','Jeremiah':'Jeremías','Lamentations':'Lamentaciones',
+  'Ezekiel':'Ezequiel','Daniel':'Daniel','Hosea':'Oseas','Joel':'Joel','Amos':'Amós',
+  'Obadiah':'Abdías','Jonah':'Jonás','Micah':'Miqueas','Nahum':'Nahúm',
+  'Habakkuk':'Habacuc','Zephaniah':'Sofonías','Haggai':'Hageo','Zechariah':'Zacarías',
+  'Malachi':'Malaquías','Matthew':'Mateo','Mark':'Marcos','Luke':'Lucas','John':'Juan',
+  'Acts':'Hechos','Romans':'Romanos','1 Corinthians':'1 Corintios',
+  '2 Corinthians':'2 Corintios','Galatians':'Gálatas','Ephesians':'Efesios',
+  'Philippians':'Filipenses','Colossians':'Colosenses',
+  '1 Thessalonians':'1 Tesalonicenses','2 Thessalonians':'2 Tesalonicenses',
+  '1 Timothy':'1 Timoteo','2 Timothy':'2 Timoteo','Titus':'Tito','Philemon':'Filemón',
+  'Hebrews':'Hebreos','James':'Santiago','1 Peter':'1 Pedro','2 Peter':'2 Pedro',
+  '1 John':'1 Juan','2 John':'2 Juan','3 John':'3 Juan','Jude':'Judas',
+  'Revelation':'Apocalipsis',
+}
+
+const ES_TO_EN: Record<string, string> = {
+  'Génesis':'Genesis','Éxodo':'Exodus','Levítico':'Leviticus','Números':'Numbers',
+  'Deuteronomio':'Deuteronomy','Josué':'Joshua','Jueces':'Judges','Rut':'Ruth',
+  '1 Reyes':'1 Kings','2 Reyes':'2 Kings','1 Crónicas':'1 Chronicles','2 Crónicas':'2 Chronicles',
+  'Esdras':'Ezra','Nehemías':'Nehemiah','Ester':'Esther','Salmos':'Psalms',
+  'Proverbios':'Proverbs','Eclesiastés':'Ecclesiastes','Cantares':'Song of Solomon',
+  'Isaías':'Isaiah','Jeremías':'Jeremiah','Lamentaciones':'Lamentations',
+  'Ezequiel':'Ezekiel','Oseas':'Hosea','Amós':'Amos','Abdías':'Obadiah',
+  'Jonás':'Jonah','Miqueas':'Micah','Nahúm':'Nahum','Habacuc':'Habakkuk',
+  'Sofonías':'Zephaniah','Hageo':'Haggai','Zacarías':'Zechariah','Malaquías':'Malachi',
+  'Mateo':'Matthew','Marcos':'Mark','Lucas':'Luke','Juan':'John','Hechos':'Acts',
+  'Romanos':'Romans','1 Corintios':'1 Corinthians','2 Corintios':'2 Corinthians',
+  'Gálatas':'Galatians','Efesios':'Ephesians','Filipenses':'Philippians',
+  'Colosenses':'Colossians','1 Tesalonicenses':'1 Thessalonians','2 Tesalonicenses':'2 Thessalonians',
+  '1 Timoteo':'1 Timothy','2 Timoteo':'2 Timothy','Tito':'Titus','Filemón':'Philemon',
+  'Hebreos':'Hebrews','Santiago':'James','1 Pedro':'1 Peter','2 Pedro':'2 Peter',
+  '1 Juan':'1 John','2 Juan':'2 John','3 Juan':'3 John','Judas':'Jude',
+  'Apocalipsis':'Revelation',
+}
+
 // ─────────────────────────────────────────────
 // TYPES
 // ─────────────────────────────────────────────
@@ -419,7 +461,17 @@ localStorage.setItem('lastSermonId', data.id)
                 color:      'var(--color-text-secondary)',
                 margin:     '0 0 8px',
               }}>
-                {sermon.passage_ref} · King James Version
+                {(() => {
+  const ref = sermon.passage_ref
+  const book = sermon.book ?? ''
+  if (language === 'ES') {
+    const esBook = EN_TO_ES[book]
+    return esBook ? ref.replace(book, esBook) : ref
+  } else {
+    const enBook = ES_TO_EN[book]
+    return enBook ? ref.replace(book, enBook) : ref
+  }
+})()} · {language === 'ES' ? 'Reina-Valera 1960' : 'King James Version'}
               </p>
 
               {/* Meta row */}
