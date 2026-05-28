@@ -1,6 +1,6 @@
 
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useMemo } from 'react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { useLanguage } from '@/hooks/useLanguage'
 import { invoke } from '@tauri-apps/api/core'
@@ -46,15 +46,15 @@ export default function IllustrationsPage() {
 
       const [illRes, tagRes] = await Promise.all([
   invoke<Illustration[]>('get_illustrations', {
-    language,
-    search: search || undefined,
-    tag: activeTag || undefined,
-    source: source || undefined,
-  }),
+  language,
+  search: search || undefined,
+  tag: activeTag || undefined,
+  source: source || undefined,
+}),
   invoke<IllustrationTag[]>('get_tags'),
 ])
 setIllustrations(illRes)
-setTags(tagRes.slice(0, 30))
+setTags(tagRes.slice(0, 50))
     } catch (err) {
       console.error(err)
     } finally {
@@ -90,7 +90,17 @@ setTags(tagRes.slice(0, 30))
     } catch {}
   }
 
-  const themeTagsOnly = tags.filter((t) => t.category === 'theme')
+  const languageFilteredIllustrations = illustrations.filter(i => i.language === language)
+const currentTags = languageFilteredIllustrations.flatMap(i => i.tags.map(t => t.tag))
+const uniqueCurrentTags = [...new Set(currentTags)]
+console.log('tags:', tags.length, 'illustrations:', illustrations.length, 'language:', language)
+const themeTagsOnly = useMemo(() => 
+  tags.filter((t) => {
+    if (t.category !== 'theme') return false
+    return illustrations.some(i => 
+      i.language === language && i.tags.some(it => it.tag === t.tag)
+    )
+  }), [tags, illustrations, language])
 
   return (
     <AppLayout>
