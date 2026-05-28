@@ -1,6 +1,6 @@
 [package]
 name = "workman"
-version = "0.5.0"
+version = "0.6.0"
 description = "Workman — sermon preparation workspace for faithful pastors"
 authors = ["Workman"]
 license = ""
