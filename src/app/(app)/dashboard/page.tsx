@@ -223,10 +223,12 @@ setData({
           <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>Loading…</p>
         ) : (
           <div style={{
-            display:             'grid',
-            gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
-            gap:                 16,
-          }}>
+  display:             'grid',
+  gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)',
+  gap:                 16,
+  flex:                1,
+  alignItems:          'start',
+}}>
 
             {/* ── LEFT COLUMN ── */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>

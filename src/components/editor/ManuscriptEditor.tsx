@@ -3,18 +3,13 @@ import StarterKit from '@tiptap/starter-kit'
 import Underline from '@tiptap/extension-underline'
 import TextAlign from '@tiptap/extension-text-align'
 import Typography from '@tiptap/extension-typography'
-import { useEffect, useRef } from 'react'
-
-interface ManuscriptEditorProps {
-  content:  string
-  onChange: (text: string) => void
-  language: string
-  fontSize: number
-}
-
-// ─────────────────────────────────────────────
-// TOOLBAR BUTTON
-// ─────────────────────────────────────────────
+import { useEffect, useRef, useState } from 'react'
+import { OutlinePoint } from '@/app/(app)/sermons/[id]/page'
+import Highlight from '@tiptap/extension-highlight'
+import { Color } from '@tiptap/extension-color'
+import { TextStyle } from '@tiptap/extension-text-style'
+import { EditorToolbar } from '@/components/editor/EditorToolbar'
+import { IndentExtension } from '@/components/editor/IndentExtension'
 
 interface ToolbarButtonProps {
   onClick:   () => void
@@ -32,27 +27,19 @@ function ToolbarButton({ onClick, active, disabled, title, children, wide }: Too
       disabled={disabled}
       title={title}
       style={{
-        padding:      wide ? '4px 8px' : '4px 7px',
-        borderRadius: 4,
-        border:       active
-          ? '1px solid var(--color-accent)'
-          : '1px solid var(--color-border-default)',
-        background:   active
-          ? 'var(--color-accent-muted)'
-          : 'var(--color-bg-secondary)',
-        color:        active
-          ? 'var(--color-accent)'
-          : disabled
-            ? 'var(--color-text-hint)'
-            : 'var(--color-text-secondary)',
-        fontSize:     12,
-        fontFamily:   'var(--font-sans)',
-        cursor:       disabled ? 'not-allowed' : 'pointer',
-        opacity:      disabled ? 0.5 : 1,
-        lineHeight:   1,
-        minWidth:     wide ? undefined : 26,
-        display:      'flex',
-        alignItems:   'center',
+        padding:        wide ? '4px 8px' : '4px 7px',
+        borderRadius:   4,
+        border:         active ? '1px solid var(--color-accent)' : '1px solid var(--color-border-default)',
+        background:     active ? 'var(--color-accent-muted)' : 'var(--color-bg-secondary)',
+        color:          active ? 'var(--color-accent)' : disabled ? 'var(--color-text-hint)' : 'var(--color-text-secondary)',
+        fontSize:       12,
+        fontFamily:     'var(--font-sans)',
+        cursor:         disabled ? 'not-allowed' : 'pointer',
+        opacity:        disabled ? 0.5 : 1,
+        lineHeight:     1,
+        minWidth:       wide ? undefined : 26,
+        display:        'flex',
+        alignItems:     'center',
         justifyContent: 'center',
       }}
     >
@@ -64,242 +51,117 @@ function ToolbarButton({ onClick, active, disabled, title, children, wide }: Too
 function Divider() {
   return (
     <div style={{
-      width:      1,
-      height:     22,
+      width: 1, height: 22,
       background: 'var(--color-border-default)',
-      margin:     '0 2px',
-      alignSelf:  'center',
+      margin: '0 2px', alignSelf: 'center',
     }} />
   )
 }
 
-// ─────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────
+interface ManuscriptEditorProps {
+  content:      string
+  onChange:     (html: string) => void
+  language:     string
+  fontSize:     number
+  onWordCount?: (count: number) => void
+}
 
 export function ManuscriptEditor({
-  content, onChange, language, fontSize
+  content, onChange, language, fontSize, onWordCount,
 }: ManuscriptEditorProps) {
   const onChangeRef = useRef(onChange)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialized = useRef(false)
+  const [hintVisible, setHintVisible] = useState(true)
+  const [toast, setToast] = useState(false)
 
-  useEffect(() => {
-    onChangeRef.current = onChange
-  }, [onChange])
+  useEffect(() => { onChangeRef.current = onChange }, [onChange])
 
   const editor = useEditor({
     extensions: [
-      StarterKit.configure({
-  heading: { levels: [1, 2, 3] },
-  strike: {},
-}),
-Underline,
-      TextAlign.configure({
-        types: ['heading', 'paragraph'],
-      }),
-      Typography,
-    ],
+  StarterKit.configure({ heading: { levels: [1, 2, 3] }, strike: {} }),
+  Underline,
+  TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  Typography,
+  Highlight.configure({ multicolor: true }),
+  Color,
+  TextStyle,
+  IndentExtension,
+],
     content,
     onUpdate: ({ editor }) => {
-      if (debounceRef.current) clearTimeout(debounceRef.current)
-      debounceRef.current = setTimeout(() => {
-        onChangeRef.current(editor.getText())
-      }, 800)
-    },
+  if (debounceRef.current) clearTimeout(debounceRef.current)
+  const text = editor.getText()
+  const count = text.trim().split(/\s+/).filter(Boolean).length
+  onWordCount?.(count)
+  debounceRef.current = setTimeout(() => {
+    onChangeRef.current(editor.getHTML())
+  }, 800)
+},
     editorProps: {
       attributes: {
         style: `font-size: ${fontSize}px; line-height: 1.8; min-height: 400px; outline: none; padding: 4px 0;`,
+        'data-placeholder': language === 'ES' ? 'Comienza a escribir tu manuscrito…' : 'Start writing your sermon manuscript…',
       },
     },
   })
 
-  // Sync content from parent only on first mount
   useEffect(() => {
     if (!initialized.current && editor && content) {
       editor.commands.setContent(content)
       initialized.current = true
     }
-  }, [editor]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editor])
+
+  function dismissHint() {
+    setHintVisible(false)
+    setToast(true)
+    setTimeout(() => setToast(false), 4000)
+  }
 
   if (!editor) return null
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
 
-      {/* ── TOOLBAR ── */}
+      {/* Hint bar */}
+      {hintVisible && (
+        <div style={{
+          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+          padding: '7px 10px',
+          background: 'var(--color-bg-secondary)',
+          border: '1px solid var(--color-border-subtle)',
+          borderRadius: 'var(--radius-md) var(--radius-md) 0 0',
+          fontSize: 11, color: 'var(--color-text-muted)',
+          marginBottom: -1,
+        }}>
+          <span>
+            {language === 'ES'
+              ? '💡 H2 = punto principal · H3 = sub-punto · las referencias de versículo se sincronizan con el esquema'
+              : '💡 H2 = main point · H3 = subpoint · verse refs sync to outline'}
+          </span>
+          <button
+            onClick={dismissHint}
+            title={language === 'ES' ? 'Cerrar' : 'Dismiss'}
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: 14, color: 'var(--color-text-hint)',
+              padding: '0 4px', lineHeight: 1, marginLeft: 8,
+            }}
+          >×</button>
+        </div>
+      )}
+
+      <EditorToolbar editor={editor} topRadius={!hintVisible} />
+
+      {/* Editor area */}
       <div style={{
-        display:        'flex',
-        flexWrap:       'wrap',
-        gap:            3,
-        padding:        '6px 8px',
-        background:     'var(--color-bg-secondary)',
-        border:         '1px solid var(--color-border-subtle)',
-        borderRadius:   'var(--radius-md) var(--radius-md) 0 0',
-        alignItems:     'center',
-      }}>
-
-        {/* Undo / Redo */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().undo().run()}
-          disabled={!editor.can().undo()}
-          title="Undo"
-        >
-          ↩
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().redo().run()}
-          disabled={!editor.can().redo()}
-          title="Redo"
-        >
-          ↪
-        </ToolbarButton>
-
-        <Divider />
-
-        {/* Headings */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setParagraph().run()}
-          active={editor.isActive('paragraph')}
-          title="Normal text"
-          wide
-        >
-          ¶ Normal
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-          active={editor.isActive('heading', { level: 1 })}
-          title="Heading 1"
-          wide
-        >
-          H1
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-          active={editor.isActive('heading', { level: 2 })}
-          title="Heading 2"
-          wide
-        >
-          H2
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
-          active={editor.isActive('heading', { level: 3 })}
-          title="Heading 3"
-          wide
-        >
-          H3
-        </ToolbarButton>
-
-        <Divider />
-
-        {/* Text formatting */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive('bold')}
-          title="Bold (Ctrl+B)"
-        >
-          <strong>B</strong>
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive('italic')}
-          title="Italic (Ctrl+I)"
-        >
-          <em>I</em>
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleUnderline().run()}
-          active={editor.isActive('underline')}
-          title="Underline (Ctrl+U)"
-        >
-          <span style={{ textDecoration: 'underline' }}>U</span>
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleStrike().run()}
-          active={editor.isActive('strike')}
-          title="Strikethrough"
-        >
-          <span style={{ textDecoration: 'line-through' }}>S</span>
-        </ToolbarButton>
-
-        <Divider />
-
-        {/* Alignment */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          active={editor.isActive({ textAlign: 'left' })}
-          title="Align left"
-        >
-          ≡
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          active={editor.isActive({ textAlign: 'center' })}
-          title="Align center"
-        >
-          ☰
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          active={editor.isActive({ textAlign: 'right' })}
-          title="Align right"
-        >
-          ≣
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setTextAlign('justify').run()}
-          active={editor.isActive({ textAlign: 'justify' })}
-          title="Justify"
-        >
-          ⊟
-        </ToolbarButton>
-
-        <Divider />
-
-        {/* Lists */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive('bulletList')}
-          title="Bullet list"
-        >
-          •≡
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive('orderedList')}
-          title="Numbered list"
-        >
-          1≡
-        </ToolbarButton>
-
-        <Divider />
-
-        {/* Block quote + rule */}
-        <ToolbarButton
-          onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          active={editor.isActive('blockquote')}
-          title="Block quote"
-        >
-          "
-        </ToolbarButton>
-        <ToolbarButton
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          title="Horizontal rule"
-        >
-          —
-        </ToolbarButton>
-
-      </div>
-
-      {/* ── EDITOR AREA ── */}
-      <div style={{
-        border:         '1px solid var(--color-border-subtle)',
-        borderTop:      'none',
-        borderRadius:   '0 0 var(--radius-md) var(--radius-md)',
-        background:     'var(--color-bg-primary)',
-        padding:        '16px 20px',
-        minHeight:      400,
+        border: '1px solid var(--color-border-subtle)',
+        borderTop: 'none',
+        borderRadius: '0 0 var(--radius-md) var(--radius-md)',
+        background: 'var(--color-bg-primary)',
+        padding: '16px 20px',
+        minHeight: 400,
       }}>
         <style>{`
           .tiptap p { margin: 0 0 0.75em; }
@@ -311,13 +173,10 @@ Underline,
           .tiptap li { margin-bottom: 0.25em; }
           .tiptap blockquote {
             border-left: 3px solid var(--color-accent);
-            padding-left: 1em;
-            margin: 0.75em 0;
+            padding-left: 1em; margin: 0.75em 0;
             color: var(--color-text-secondary);
-            font-style: italic;
-            font-family: var(--font-serif);
+            font-style: italic; font-family: var(--font-serif);
           }
-          .tiptap hr { border: none; border-top: 1px solid var(--color-border-default); margin: 1em 0; }
           .tiptap p.is-editor-empty:first-child::before {
             content: attr(data-placeholder);
             float: left;
@@ -325,10 +184,29 @@ Underline,
             pointer-events: none;
             height: 0;
           }
+          .tiptap hr { border: none; border-top: 1px solid var(--color-border-default); margin: 1em 0; }
         `}</style>
         <EditorContent editor={editor} />
       </div>
 
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)',
+          background: 'var(--color-bg-primary)',
+          border: '1px solid var(--color-border-default)',
+          borderRadius: 'var(--radius-md)',
+          padding: '8px 16px',
+          fontSize: 12, color: 'var(--color-text-secondary)',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          zIndex: 500,
+          whiteSpace: 'nowrap',
+        }}>
+          {language === 'ES'
+            ? 'Las sugerencias se pueden ocultar permanentemente en Configuración → Apariencia'
+            : 'Hints can be permanently hidden in Settings → Appearance'}
+        </div>
+      )}
     </div>
   )
 }

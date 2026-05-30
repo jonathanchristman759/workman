@@ -68,22 +68,24 @@ export interface OutlinePoint {
   text:      string
   subpoints: string[]
   verseRef?: string
+  body?:     string
 }
 
 export interface Sermon {
-  id:           string
-  title:        string
-  passage_ref: string
-  book?:        string | null
-  chapterStart?: number | null
-  mode:         EditorMode
-  outline_json?: string | null
-  manuscript?:  string | null
-  notes?:       string | null
-  word_count:    number
-  status:       string
-  deliveryDate?: string | null
-  series?:      { id: string; title: string } | null
+  id:             string
+  title:          string
+  passage_ref:    string
+  book?:          string | null
+  chapterStart?:  number | null
+  mode:           EditorMode
+  outline_json?:  string | null
+  manuscript?:    string | null
+  notes?:         string | null
+  word_count:     number
+  status:         string
+  deliveryDate?:  string | null
+  series?:        { id: string; title: string } | null
+  target_minutes: number
 }
 
 // ─────────────────────────────────────────────
@@ -181,6 +183,7 @@ export default function SermonEditorPage() {
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
   const [sidePanelTab, setSidePanelTab] = useState<'lexicon' | 'illustrations'>('lexicon')
 const [previewMode, setPreviewMode] = useState(false)
+const [liveWordCount, setLiveWordCount] = useState<number | null>(null)
 
   // Track unsaved content separately from the sermon object
   // to avoid unnecessary re-renders on every keystroke
@@ -223,15 +226,24 @@ localStorage.setItem('lastSermonId', data.id)
 
         // Recalculate word count from current content
         let word_count = 0
-        if (updates.manuscript) word_count = countWords(updates.manuscript)
-        else if (updates.notes)  word_count = countWords(updates.notes)
-        else if (updates.outline_json) {
-          const pts = updates.outline_json ? JSON.parse(updates.outline_json).points ?? [] : []
-          word_count = pts.reduce((sum: number, p: OutlinePoint) => {
-            return sum + countWords(p.text) +
-              (p.subpoints ?? []).reduce((s: number, sp: string) => s + countWords(sp), 0)
-          }, 0)
-        }
+const mode = sermon?.mode ?? 'OUTLINE'
+
+if (mode === 'MANUSCRIPT') {
+  const text = (updates.manuscript ?? sermon?.manuscript ?? '').replace(/<[^>]*>/g, '')
+  word_count = countWords(text)
+} else if (mode === 'NOTES') {
+  const text = (updates.notes ?? sermon?.notes ?? '').replace(/<[^>]*>/g, '')
+  word_count = countWords(text)
+} else {
+  const json = updates.outline_json ?? sermon?.outline_json ?? '{}'
+  const pts = (() => { try { return JSON.parse(json).points ?? [] } catch { return [] } })()
+  word_count = pts.reduce((sum: number, p: OutlinePoint) => {
+    const bodyText = (p.body ?? '').replace(/<[^>]*>/g, '')
+    return sum + countWords(p.text) +
+      countWords(bodyText) +
+      (p.subpoints ?? []).reduce((s: number, sp: string) => s + countWords(sp), 0)
+  }, 0)
+}
 
         await invoke('update_sermon', {
   id: sermonId,
@@ -282,6 +294,11 @@ localStorage.setItem('lastSermonId', data.id)
       if (e.key === 'Escape' && previewMode) {
         setPreviewMode(false)
       }
+      if (e.ctrlKey && e.shiftKey && e.key === 'O') {
+  e.preventDefault()
+  if (sermon?.mode === 'MANUSCRIPT') convertFromManuscript()
+  if (sermon?.mode === 'OUTLINE') syncToManuscript()
+}
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
@@ -304,17 +321,106 @@ localStorage.setItem('lastSermonId', data.id)
     scheduleSave()
   }
 
+  function convertFromManuscript() {
+  const parser = new DOMParser()
+  const doc = parser.parseFromString(sermon?.manuscript ?? '', 'text/html')
+  const nodes = Array.from(doc.body.childNodes)
+
+  const newPoints: OutlinePoint[] = []
+  let currentPoint: OutlinePoint | null = null
+
+  nodes.forEach((node) => {
+    const el = node as Element
+    if (el.tagName === 'H2') {
+      if (currentPoint) newPoints.push(currentPoint)
+      const raw = el.textContent ?? ''
+      const text = raw.replace(/^[IVXivx]+\.\s*/, '').trim()
+      currentPoint = { id: Math.random().toString(36).slice(2, 9), text, subpoints: [], body: '' }
+    } else if (el.tagName === 'H3' && currentPoint) {
+      const raw = el.textContent ?? ''
+      const text = raw.replace(/^[a-z]\.\s*/i, '').trim()
+      currentPoint.subpoints = [...(currentPoint.subpoints ?? []), text]
+    } else if (el.tagName === 'P' && currentPoint) {
+      const text = el.textContent?.trim() ?? ''
+      const isVerseRef = el.querySelector('em') && text.length < 40
+      if (isVerseRef && !currentPoint.verseRef) {
+        currentPoint.verseRef = text
+      } else if (text) {
+        currentPoint.body = (currentPoint.body ?? '') + (el.outerHTML ?? '')
+      }
+    } else if (currentPoint) {
+      currentPoint.body = (currentPoint.body ?? '') + ((el as Element).outerHTML ?? '')
+    }
+  })
+
+  if (currentPoint) newPoints.push(currentPoint)
+
+  if (newPoints.length === 0) {
+    alert(language === 'ES'
+      ? 'No se encontraron encabezados H2.'
+      : 'No H2 headings found. Use H2 headings to mark your main points.')
+    return
+  }
+
+  handleOutlineChange(newPoints)
+  handleModeSwitch('OUTLINE')
+}
+
+function syncToManuscript() {
+  const points = (() => { try { return JSON.parse(sermon?.outline_json ?? '{}').points ?? [] } catch { return [] } })()
+  if (points.length === 0) {
+    alert(language === 'ES' ? 'No hay puntos en el esquema.' : 'No outline points to sync.')
+    return
+  }
+
+  const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X']
+  const ALPHA  = 'abcdefghij'
+
+  let html = ''
+  points.forEach((p: OutlinePoint, i: number) => {
+    html += `<h2>${ROMAN[i] ?? '•'}. ${p.text}</h2>`
+    if (p.verseRef) html += `<p><em>${p.verseRef}</em></p>`
+    ;(p.subpoints ?? []).forEach((sub: string, j: number) => {
+      html += `<h3>${ALPHA[j] ?? '·'}. ${sub}</h3>`
+    })
+    html += `<p></p>`
+  })
+
+  handleManuscriptChange(html)
+  setSermon(prev => prev ? { ...prev, manuscript: html } : prev)
+  handleModeSwitch('MANUSCRIPT')
+}
+
   // ── MODE SWITCH ───────────────────────────
 
   async function handleModeSwitch(mode: EditorMode) {
-    if (!sermon || mode === sermon.mode) return
-    try {
-      await invoke('update_sermon', { id: sermonId, input: { mode } })
-      setSermon((prev) => prev ? { ...prev, mode } : prev)
-    } catch {
-      // Silently ignore — mode change is low stakes
+  if (!sermon || mode === sermon.mode) return
+  try {
+    setLiveWordCount(null)
+    await invoke('update_sermon', { id: sermonId, input: { mode } })
+
+    let word_count = sermon.word_count
+    if (mode === 'MANUSCRIPT') {
+      const text = (sermon.manuscript ?? '').replace(/<[^>]*>/g, '')
+      word_count = countWords(text)
+    } else if (mode === 'NOTES') {
+      const text = (sermon.notes ?? '').replace(/<[^>]*>/g, '')
+      word_count = countWords(text)
+    } else {
+      const pts = (() => { try { return JSON.parse(sermon.outline_json ?? '{}').points ?? [] } catch { return [] } })()
+      word_count = pts.reduce((sum: number, p: OutlinePoint) => {
+        const bodyText = (p.body ?? '').replace(/<[^>]*>/g, '')
+        return sum + countWords(p.text) +
+          countWords(bodyText) +
+          (p.subpoints ?? []).reduce((s: number, sp: string) => s + countWords(sp), 0)
+      }, 0)
     }
+
+    setSermon((prev) => prev ? { ...prev, mode, word_count } : prev)
+  } catch {
+    // Silently ignore — mode change is low stakes
   }
+}
 
   // ── MARK DELIVERED ────────────────────────
 
@@ -358,13 +464,14 @@ function handlePrint() {
             ${'abcdefghij'[j]}. ${s}
           </p>`
         ).join('')
-        return `<div style="margin-bottom:16px;">
-          <p style="font-size:16px;font-weight:600;margin:0 0 4px;">
-            ${roman}. ${p.text}
-            ${p.verseRef ? `<span style="font-weight:400;color:#888;margin-left:8px;">(${p.verseRef})</span>` : ''}
-          </p>
-          ${subs}
-        </div>`
+        return `<div style="margin-bottom:24px;">
+  <p style="font-size:16px;font-weight:600;margin:0 0 4px;">
+    ${roman}. ${p.text}
+    ${p.verseRef ? `<span style="font-weight:400;color:#888;margin-left:8px;">(${p.verseRef})</span>` : ''}
+  </p>
+  ${subs}
+  ${p.body ? `<div style="margin-top:8px;margin-left:24px;padding-left:12px;border-left:2px solid #ddd;font-size:14px;line-height:1.8;">${p.body}</div>` : ''}
+</div>`
       }).join('')
     : ''
 
@@ -438,11 +545,11 @@ printFrame.onload = () => {
   return (
     <AppLayout>
       <div style={{
-        background:   'var(--color-bg-primary)',
-        border:       '1px solid var(--color-border-subtle)',
-        borderRadius: 'var(--radius-lg)',
-        overflow:     'hidden',
-      }}>
+  background:    'var(--color-bg-primary)',
+  border:        '1px solid var(--color-border-subtle)',
+  borderRadius:  'var(--radius-lg)',
+  overflow:      'clip',
+}}>
 
         {/* ── EDITOR NAV BAR ── */}
         <div style={{
@@ -467,7 +574,17 @@ printFrame.onload = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <SaveIndicator status={saveStatus} language={language} />
 
-            <button className="workman-btn" onClick={handlePrint} style={{ fontSize: 11, padding: '4px 10px' }}>
+            {sermon.mode === 'MANUSCRIPT' && (
+  <button className="workman-btn" onClick={convertFromManuscript} style={{ fontSize: 11, padding: '4px 10px' }} title="Ctrl+Shift+O">
+    {language === 'ES' ? '⇄ A esquema' : '⇄ To outline'}
+  </button>
+)}
+{sermon.mode === 'OUTLINE' && (
+  <button className="workman-btn" onClick={syncToManuscript} style={{ fontSize: 11, padding: '4px 10px' }}>
+    {language === 'ES' ? '⇄ A manuscrito' : '⇄ To manuscript'}
+  </button>
+)}
+<button className="workman-btn" onClick={handlePrint} style={{ fontSize: 11, padding: '4px 10px' }}>
   {language === 'ES' ? 'Imprimir' : 'Print'}
 </button>
 <button className="workman-btn" onClick={handleExport} style={{ fontSize: 11, padding: '4px 10px' }}>
@@ -502,19 +619,19 @@ printFrame.onload = () => {
         </div>
 
         {/* ── EDITOR BODY ── */}
-        <div style={{
-          display:             'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) 260px',
-          minHeight:           580,
-        }}>
+<div style={{
+  display:             'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 260px',
+  alignItems:          'stretch',
+}}>
 
           {/* ── MAIN WRITING AREA ── */}
           <div style={{
-            padding:     '20px 24px',
-            borderRight: '1px solid var(--color-border-subtle)',
-            overflowY:   'auto',
-            position:    'relative',
-          }}>
+  padding:     '20px 24px',
+  borderRight: '1px solid var(--color-border-subtle)',
+  overflowY:   'auto',
+  position:    'relative',
+}}>
 
             {/* Sermon header */}
             <div style={{ marginBottom: 16 }}>
@@ -563,13 +680,18 @@ printFrame.onload = () => {
                   </span>
                 )}
 
-                {sermon.word_count > 0 && (
-                  <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
-                    ~{sermon.word_count.toLocaleString()}{' '}
-                    {language === 'ES' ? 'palabras' : 'words'}{' '}
-                    · ~{estimateMinutes(sermon.word_count)} min
-                  </span>
-                )}
+                {(() => {
+  const count = (liveWordCount !== null)
+  ? liveWordCount
+  : sermon.word_count
+  return count > 0 ? (
+    <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
+      ~{count.toLocaleString()}{' '}
+      {language === 'ES' ? 'palabras' : 'words'}{' '}
+      · ~{estimateMinutes(count)} min
+    </span>
+  ) : null
+})()}
 
                 {sermon.series && (
                   <span style={{ fontSize: 11, color: 'var(--color-text-muted)' }}>
@@ -641,27 +763,40 @@ printFrame.onload = () => {
                 </p>
                 <hr style={{ border: 'none', borderTop: '1px solid var(--color-accent)', marginBottom: 24 }} />
                 {sermon.mode === 'OUTLINE' && sermon.outline_json && (
-                  <div>
-                    {JSON.parse(sermon.outline_json).points.map((point: any, i: number) => (
-                      <div key={point.id} style={{ marginBottom: 20 }}>
-                        <p style={{ fontSize: 16, fontWeight: 600, margin: '0 0 4px', color: 'var(--color-text-primary)' }}>
-                          {['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]}. {point.text}
-                          {point.verseRef && <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: 8 }}>({point.verseRef})</span>}
-                        </p>
-                        {point.subpoints?.map((sub: string, j: number) => (
-                          <p key={j} style={{ fontSize: 14, margin: '2px 0 2px 24px', color: 'var(--color-text-secondary)' }}>
-                            {['a','b','c','d','e','f','g','h','i','j'][j]}. {sub}
-                          </p>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                )}
+  <div>
+    {(JSON.parse(sermon.outline_json).points ?? []).map((point: any, i: number) => (
+      <div key={point.id} style={{ marginBottom: 28 }}>
+        <p style={{ fontSize: 16, fontWeight: 600, margin: '0 0 4px', color: 'var(--color-text-primary)' }}>
+          {['I','II','III','IV','V','VI','VII','VIII','IX','X'][i]}. {point.text}
+          {point.verseRef && <span style={{ fontSize: 13, fontWeight: 400, color: 'var(--color-text-muted)', marginLeft: 8 }}>({point.verseRef})</span>}
+        </p>
+        {point.subpoints?.map((sub: string, j: number) => (
+          <p key={j} style={{ fontSize: 14, margin: '2px 0 2px 24px', color: 'var(--color-text-secondary)' }}>
+            {['a','b','c','d','e','f','g','h','i','j'][j]}. {sub}
+          </p>
+        ))}
+        {point.body && (
+          <div
+            style={{
+              marginTop: 10, marginLeft: 24,
+              fontSize: 14, lineHeight: 1.8,
+              color: 'var(--color-text-primary)',
+              borderLeft: '2px solid var(--color-border-subtle)',
+              paddingLeft: 12,
+            }}
+            dangerouslySetInnerHTML={{ __html: point.body }}
+          />
+        )}
+      </div>
+    ))}
+  </div>
+)}
                 {sermon.mode === 'MANUSCRIPT' && (
-                  <div style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--color-text-primary)', whiteSpace: 'pre-wrap' }}>
-                    {sermon.manuscript}
-                  </div>
-                )}
+  <div
+    style={{ fontSize: 15, lineHeight: 1.8, color: 'var(--color-text-primary)' }}
+    dangerouslySetInnerHTML={{ __html: sermon.manuscript ?? '' }}
+  />
+)}
                 {sermon.mode === 'NOTES' && (
                   <div style={{ fontSize: 14, lineHeight: 1.7, color: 'var(--color-text-primary)', whiteSpace: 'pre-wrap' }}>
                     {sermon.notes}
@@ -673,19 +808,21 @@ printFrame.onload = () => {
                 {sermon.mode === 'OUTLINE' && (
                   <OutlineEditor
   key={sermon.id}
-  points={sermon.outline_json ? JSON.parse(sermon.outline_json).points ?? [] : []}
+  points={(() => { try { return JSON.parse(sermon.outline_json ?? '{}').points ?? [] } catch { return [] } })()}
   onChange={handleOutlineChange}
   language={language}
+  onWordCount={setLiveWordCount}
 />
                 )}
                 {sermon.mode === 'MANUSCRIPT' && (
-                  <ManuscriptEditor
-                    content={sermon.manuscript ?? ''}
-                    onChange={handleManuscriptChange}
-                    language={language}
-                    fontSize={16}
-                  />
-                )}
+  <ManuscriptEditor
+  content={sermon.manuscript ?? ''}
+  onChange={handleManuscriptChange}
+  language={language}
+  fontSize={16}
+  onWordCount={setLiveWordCount}
+/>
+)}
                 {sermon.mode === 'NOTES' && (
                   <NotesEditor
                     content={sermon.notes ?? ''}
@@ -695,7 +832,7 @@ printFrame.onload = () => {
                 )}
               </>
             )}
-          </div>
+          </div>{/* closes main writing area */}
 
           {/* ── SIDE PANEL ── */}
           <EditorSidePanel

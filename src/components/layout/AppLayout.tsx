@@ -360,6 +360,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                   { key: 'Ctrl + /',         desc: language === 'ES' ? 'Abrir léxico' : 'Open lexicon' },
                   { key: 'Enter',            desc: language === 'ES' ? 'Nuevo punto (esquema)' : 'New outline point' },
                   { key: 'Tab',              desc: language === 'ES' ? 'Nuevo sub-punto (esquema)' : 'New sub-point' },
+                  { key: 'Ctrl + Shift + O', desc: language === 'ES' ? 'Convertir a esquema' : 'Convert to outline' },
                   { key: 'Ctrl + B',         desc: language === 'ES' ? 'Negrita' : 'Bold' },
                   { key: 'Ctrl + I',         desc: language === 'ES' ? 'Cursiva' : 'Italic' },
                   { key: 'Ctrl + U',         desc: language === 'ES' ? 'Subrayado' : 'Underline' },
@@ -438,16 +439,27 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
       {/* ── PAGE CONTENT ── */}
       <main style={{
-        flex:      1,
-        overflowY: 'auto',
-        padding:   '24px 24px',
-        maxWidth:  1200,
-        margin:    '0 auto',
-        width:     '100%',
-        boxSizing: 'border-box',
-      }}>
-        {children}
-      </main>
+  flex:          1,
+  overflowY:     'auto',
+  padding:       '24px 24px',
+  width:         '100%',
+  boxSizing:     'border-box',
+  display:       'flex',
+  flexDirection: 'column',
+  minHeight:     0,
+}}>
+  <div style={{
+    maxWidth:      1200,
+    margin:        '0 auto',
+    width:         '100%',
+    flex:          1,
+    display:       'flex',
+    flexDirection: 'column',
+    minHeight:     0,
+  }}>
+    {children}
+  </div>
+</main>
 
 {/* ── VERSION INDICATOR ── */}
       <VersionIndicator language={language} />
