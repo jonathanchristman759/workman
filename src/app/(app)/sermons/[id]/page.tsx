@@ -245,10 +245,10 @@ if (mode === 'MANUSCRIPT') {
   }, 0)
 }
 
-        await invoke('update_sermon', {
+await invoke('update_sermon', {
   id: sermonId,
   input: {
-    outline_json: updates.outline_json ? JSON.stringify(updates.outline_json) : undefined,
+    outline_json: updates.outline_json ?? undefined,
     manuscript:   updates.manuscript,
     notes:        updates.notes,
     word_count:   word_count,
@@ -257,7 +257,7 @@ if (mode === 'MANUSCRIPT') {
 })
 
         // Sync word count back to the sermon state
-        setSermon((prev) => prev ? { ...prev, ...updates, word_count } : prev)
+        setSermon((prev) => prev ? { ...prev, word_count } : prev)
         pendingContent.current = {}
         setSaveStatus('saved')
       } catch {
@@ -453,7 +453,6 @@ function syncToManuscript() {
 }
 
 function handlePrint() {
-  console.log('handlePrint called', sermon)
   if (!sermon) return
 
   const outlineHtml = sermon.outline_json
@@ -503,8 +502,7 @@ function handlePrint() {
     </html>
   `
 
-console.log('bodyHtml', bodyHtml)
-console.log('win', window.open)
+
   const printFrame = document.createElement('iframe')
 printFrame.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;border:none;'
 document.body.appendChild(printFrame)
@@ -807,7 +805,7 @@ printFrame.onload = () => {
               <>
                 {sermon.mode === 'OUTLINE' && (
                   <OutlineEditor
-  key={sermon.id}
+  key={sermon.id + (sermon.outline_json ?? '')}
   points={(() => { try { return JSON.parse(sermon.outline_json ?? '{}').points ?? [] } catch { return [] } })()}
   onChange={handleOutlineChange}
   language={language}

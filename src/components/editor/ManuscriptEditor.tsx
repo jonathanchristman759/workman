@@ -99,11 +99,12 @@ export function ManuscriptEditor({
   }, 800)
 },
     editorProps: {
-      attributes: {
-        style: `font-size: ${fontSize}px; line-height: 1.8; min-height: 400px; outline: none; padding: 4px 0;`,
-        'data-placeholder': language === 'ES' ? 'Comienza a escribir tu manuscrito…' : 'Start writing your sermon manuscript…',
-      },
-    },
+  attributes: {
+    style: `font-size: ${fontSize}px; line-height: 1.8; min-height: 400px; outline: none; padding: 4px 0;`,
+    'data-placeholder': language === 'ES' ? 'Comienza a escribir tu manuscrito…' : 'Start writing your sermon manuscript…',
+    spellcheck: 'true',
+  },
+},
   })
 
   useEffect(() => {

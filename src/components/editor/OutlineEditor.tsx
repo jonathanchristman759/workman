@@ -66,10 +66,11 @@ function PointBodyEditor({
       }, 600)
     },
     editorProps: {
-      attributes: {
-        style: 'font-size: 14px; line-height: 1.7; min-height: 80px; outline: none; padding: 4px 0;',
-      },
-    },
+  attributes: {
+    style: 'font-size: 14px; line-height: 1.7; min-height: 80px; outline: none; padding: 4px 0;',
+    spellcheck: 'true',
+  },
+},
   })
 
   useEffect(() => {
@@ -113,16 +114,18 @@ export function OutlineEditor({ points: initialPoints, onChange, language, onWor
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const onChangeRef = useRef(onChange)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const isInitialized = useRef(false)
 
   useEffect(() => { onChangeRef.current = onChange }, [onChange])
 
-  useEffect(() => {
-    if (!isInitialized.current && initialPoints.length > 0) {
-      setPoints(initialPoints)
-      isInitialized.current = true
-    }
-  }, [initialPoints])
+  const lastSermonId = useRef<string | null>(null)
+
+useEffect(() => {
+  const firstPointId = initialPoints[0]?.id
+  if (firstPointId && lastSermonId.current !== firstPointId) {
+    setPoints(initialPoints)
+    lastSermonId.current = firstPointId
+  }
+}, [initialPoints])
 
   function notifyParent(newPoints: OutlinePoint[]) {
     if (debounceRef.current) clearTimeout(debounceRef.current)
