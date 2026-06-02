@@ -329,6 +329,11 @@ pub fn init(path: &Path) -> Result<Connection> {
 let _ = conn.execute_batch("
     ALTER TABLE sermons ADD COLUMN target_minutes INTEGER NOT NULL DEFAULT 30;
 ");
+
+let _ = conn.execute_batch("
+    ALTER TABLE settings ADD COLUMN show_editor_hints INTEGER NOT NULL DEFAULT 1;
+");
+
     // Create triggers
     conn.execute_batch(TRIGGERS)
         .map_err(|e| AppError::Database(e.to_string()))?;

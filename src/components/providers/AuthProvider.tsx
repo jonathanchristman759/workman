@@ -10,13 +10,14 @@ import { check } from '@tauri-apps/plugin-updater'
 import { relaunch } from '@tauri-apps/plugin-process'
 
 interface User {
-  name:           string
-  church?:        string | null
-  denomination?:  string | null
-  language:       'EN' | 'ES'
-  theme:          string
-  editorFontSize: number
-  logosConnected: boolean
+  name:             string
+  church?:          string | null
+  denomination?:    string | null
+  language:         'EN' | 'ES'
+  theme:            string
+  editorFontSize:   number
+  logosConnected:   boolean
+  showEditorHints:  boolean
 }
 
 interface AuthContextValue {
@@ -48,12 +49,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (err) {
       console.error('Failed to load settings:', err)
       setUser({
-        name:           '',
-        language:       'EN',
-        theme:          'parchment',
-        editorFontSize: 16,
-        logosConnected: false,
-      })
+  name:            '',
+  language:        'EN',
+  theme:           'parchment',
+  editorFontSize:  16,
+  logosConnected:  false,
+  showEditorHints: true,
+})
     } finally {
       setLoading(false)
     }

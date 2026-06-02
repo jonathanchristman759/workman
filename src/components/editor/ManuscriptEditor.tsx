@@ -59,20 +59,25 @@ function Divider() {
 }
 
 interface ManuscriptEditorProps {
-  content:      string
-  onChange:     (html: string) => void
-  language:     string
-  fontSize:     number
-  onWordCount?: (count: number) => void
+  content:          string
+  onChange:         (html: string) => void
+  language:         string
+  fontSize:         number
+  onWordCount?:     (count: number) => void
+  showEditorHints?: boolean
 }
 
 export function ManuscriptEditor({
-  content, onChange, language, fontSize, onWordCount,
+  content, onChange, language, fontSize, onWordCount, showEditorHints = true,
 }: ManuscriptEditorProps) {
   const onChangeRef = useRef(onChange)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialized = useRef(false)
-  const [hintVisible, setHintVisible] = useState(true)
+  const [hintVisible, setHintVisible] = useState(showEditorHints)
+
+useEffect(() => {
+  setHintVisible(showEditorHints)
+}, [showEditorHints])
   const [toast, setToast] = useState(false)
 
   useEffect(() => { onChangeRef.current = onChange }, [onChange])

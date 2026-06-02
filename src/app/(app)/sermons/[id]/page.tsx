@@ -14,6 +14,7 @@ import { OutlineEditor } from '@/components/editor/OutlineEditor'
 import { ManuscriptEditor } from '@/components/editor/ManuscriptEditor'
 import { NotesEditor } from '@/components/editor/NotesEditor'
 import { EditorSidePanel } from '@/components/editor/EditorSidePanel'
+import { useAuth } from '@/components/providers/AuthProvider'
 
 const EN_TO_ES: Record<string, string> = {
   'Genesis':'Génesis','Exodus':'Éxodo','Leviticus':'Levítico','Numbers':'Números',
@@ -173,6 +174,7 @@ function ModePill({
 // ─────────────────────────────────────────────
 
 export default function SermonEditorPage() {
+  const { user } = useAuth()
   const params   = useParams()
   const router   = useNavigate()
   const { language } = useLanguage()
@@ -532,6 +534,7 @@ printFrame.onload = () => {
     )
   }
 
+  console.log('user showEditorHints:', user?.showEditorHints)
   if (!sermon) return null
 
   const modeLabels: Record<EditorMode, { en: string; es: string }> = {
@@ -814,12 +817,13 @@ printFrame.onload = () => {
                 )}
                 {sermon.mode === 'MANUSCRIPT' && (
   <ManuscriptEditor
-  content={sermon.manuscript ?? ''}
-  onChange={handleManuscriptChange}
-  language={language}
-  fontSize={16}
-  onWordCount={setLiveWordCount}
-/>
+    content={sermon.manuscript ?? ''}
+    onChange={handleManuscriptChange}
+    language={language}
+    fontSize={16}
+    onWordCount={setLiveWordCount}
+    showEditorHints={user?.showEditorHints ?? true}
+  />
 )}
                 {sermon.mode === 'NOTES' && (
                   <NotesEditor

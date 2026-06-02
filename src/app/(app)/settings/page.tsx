@@ -25,6 +25,7 @@ export default function SettingsPage() {
   const [saving,       setSaving]       = useState(false)
   const [saved,        setSaved]        = useState(false)
   const [currentVersion, setCurrentVersion] = useState('…')
+  const [showHints, setShowHints] = useState(user?.showEditorHints ?? true)
 
 useEffect(() => {
   getVersion().then(setCurrentVersion)
@@ -34,11 +35,12 @@ useEffect(() => {
     setSaving(true)
     try {
       await invoke('update_settings', { input: {
-        name, church: church || null, denomination: denomination || null,
-        language: language as 'EN' | 'ES',
-        theme:    theme.toUpperCase(),
-        editorFontSize: fontSize,
-      }})
+  name, church: church || null, denomination: denomination || null,
+  language: language as 'EN' | 'ES',
+  theme:    theme.toUpperCase(),
+  editorFontSize: fontSize,
+  showEditorHints: showHints,
+}})
       await refreshUser()
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
@@ -194,6 +196,42 @@ useEffect(() => {
                   <option value={18}>{language === 'ES' ? 'Grande (18px)'  : 'Large (18px)'}</option>
                   <option value={20}>{language === 'ES' ? 'Muy grande (20px)' : 'Extra large (20px)'}</option>
                 </select>
+                <div style={{ marginTop: 16 }}>
+  <label style={filterLabelStyle}>
+    {language === 'ES' ? 'Sugerencias del editor' : 'Editor hints'}
+  </label>
+  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginTop: 4 }}>
+    <button
+      onClick={() => setShowHints(true)}
+      style={{
+        padding: '6px 16px', borderRadius: 6, fontSize: 12,
+        border: `1px solid ${showHints ? 'var(--color-accent)' : 'var(--color-border-default)'}`,
+        background: showHints ? 'var(--color-accent)' : 'transparent',
+        color: showHints ? 'var(--color-accent-text)' : 'var(--color-text-secondary)',
+        cursor: 'pointer', fontFamily: 'var(--font-sans)',
+      }}
+    >
+      {language === 'ES' ? 'Mostrar' : 'Show'}
+    </button>
+    <button
+      onClick={() => setShowHints(false)}
+      style={{
+        padding: '6px 16px', borderRadius: 6, fontSize: 12,
+        border: `1px solid ${!showHints ? 'var(--color-accent)' : 'var(--color-border-default)'}`,
+        background: !showHints ? 'var(--color-accent)' : 'transparent',
+        color: !showHints ? 'var(--color-accent-text)' : 'var(--color-text-secondary)',
+        cursor: 'pointer', fontFamily: 'var(--font-sans)',
+      }}
+    >
+      {language === 'ES' ? 'Ocultar' : 'Hide'}
+    </button>
+  </div>
+  <p style={{ fontSize: 10, color: 'var(--color-text-hint)', margin: '6px 0 0' }}>
+    {language === 'ES'
+      ? 'Controla si se muestran las sugerencias en el editor de manuscrito.'
+      : 'Controls whether hints are shown in the manuscript editor.'}
+  </p>
+</div>
               </div>
             )}
 
