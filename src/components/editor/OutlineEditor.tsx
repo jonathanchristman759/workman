@@ -10,6 +10,8 @@ import { Color } from '@tiptap/extension-color'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { IndentExtension } from '@/components/editor/IndentExtension'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
+import Superscript from '@tiptap/extension-superscript'
+import Subscript from '@tiptap/extension-subscript'
 
 interface OutlineEditorProps {
   points:       OutlinePoint[]
@@ -57,6 +59,8 @@ function PointBodyEditor({
   Color,
   TextStyle,
   IndentExtension,
+  Superscript,
+  Subscript,
 ],
     content: body || '',
     onUpdate: ({ editor }) => {

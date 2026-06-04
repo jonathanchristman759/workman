@@ -10,6 +10,8 @@ import { Color } from '@tiptap/extension-color'
 import { TextStyle } from '@tiptap/extension-text-style'
 import { EditorToolbar } from '@/components/editor/EditorToolbar'
 import { IndentExtension } from '@/components/editor/IndentExtension'
+import Superscript from '@tiptap/extension-superscript'
+import Subscript from '@tiptap/extension-subscript'
 
 interface ToolbarButtonProps {
   onClick:   () => void
@@ -92,6 +94,8 @@ useEffect(() => {
   Color,
   TextStyle,
   IndentExtension,
+  Superscript,
+  Subscript,
 ],
     content,
     onUpdate: ({ editor }) => {

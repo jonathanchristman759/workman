@@ -138,16 +138,17 @@ export default function BiblePage() {
   const ntBooks = language === 'ES' ? NT_BOOKS_ES : NT_BOOKS_EN
 
   const [translation,     setTranslation]     = useState<'KJV' | 'RVR60'>('KJV')
-  const [selectedBook,    setSelectedBook]     = useState('Genesis')
-  const [selectedChapter, setSelectedChapter]  = useState(1)
+  const [selectedBook,    setSelectedBook]     = useState(localStorage.getItem('bible_book') ?? 'Genesis')
+const [selectedChapter, setSelectedChapter]  = useState(parseInt(localStorage.getItem('bible_chapter') ?? '1'))
   const [chapterCount,    setChapterCount]     = useState(50)
   const [verses,          setVerses]           = useState<BibleVerse[]>([])
   const [loading,         setLoading]          = useState(false)
   const [highlighted,     setHighlighted]      = useState<Set<number>>(new Set())
   const [showBookPanel,   setShowBookPanel]    = useState(true)
-  const [fontSize,        setFontSize]         = useState(16)
-  const [showVerseNums,   setShowVerseNums]    = useState(true)
-  const [viewMode,        setViewMode]         = useState<'paragraph' | 'line'>('paragraph')
+  const savedSettings = (() => { try { return JSON.parse(localStorage.getItem('bible_settings') ?? '{}') } catch { return {} } })()
+const [fontSize,      setFontSize]      = useState<number>(savedSettings.fontSize ?? 16)
+const [showVerseNums, setShowVerseNums] = useState<boolean>(savedSettings.showVerseNums ?? true)
+const [viewMode,      setViewMode]      = useState<'paragraph' | 'line'>(savedSettings.viewMode ?? 'paragraph')
   const [fullscreen,      setFullscreen]       = useState(false)
   const [showSettings,    setShowSettings]     = useState(false)
   const [history,         setHistory]          = useState<HistoryEntry[]>([])
@@ -157,17 +158,69 @@ export default function BiblePage() {
   const [jumpQuery, setJumpQuery] = useState('')
   const pendingChapter = useRef<number | null>(null)
 const pendingVerse   = useRef<number | null>(null)
+const [contextMenu, setContextMenu] = useState<{
+  x: number; y: number; verse: BibleVerse
+} | null>(null)
+
+useEffect(() => {
+  function handleClick() { setContextMenu(null) }
+  document.addEventListener('click', handleClick)
+  return () => document.removeEventListener('click', handleClick)
+}, [])
+
+function handleContextMenu(e: React.MouseEvent, verse: BibleVerse) {
+  e.preventDefault()
+  setContextMenu({ x: e.clientX, y: e.clientY, verse })
+}
+
+function toSuperscript(n: number): string {
+  const map: Record<string, string> = {
+    '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'
+  }
+  return String(n).split('').map(d => map[d] ?? d).join('')
+}
+
+async function handleCopyVerse(verse: BibleVerse) {
+  if (highlighted.size > 1 && highlighted.has(verse.verse)) {
+    const sorted = verses.filter(v => highlighted.has(v.verse))
+    const ref = `${sorted[0].book} ${sorted[0].chapter}:${sorted[0].verse}-${sorted[sorted.length-1].verse}`
+    const text = ref + ' — "' + sorted.map(v => `${toSuperscript(v.verse)}${v.text}`).join(' ') + '"'
+    await navigator.clipboard.writeText(text)
+  } else {
+    await navigator.clipboard.writeText(`${verse.book} ${verse.chapter}:${verse.verse} — "${verse.text}"`)
+  }
+  setContextMenu(null)
+}
+
+async function handleCopyRef(verse: BibleVerse) {
+  if (highlighted.size > 1 && highlighted.has(verse.verse)) {
+    const nums = verses
+      .filter(v => highlighted.has(v.verse))
+      .map(v => v.verse)
+    const first = nums[0]
+    const last  = nums[nums.length - 1]
+    await navigator.clipboard.writeText(`${verse.book} ${verse.chapter}:${first}-${last}`)
+  } else {
+    await navigator.clipboard.writeText(`${verse.book} ${verse.chapter}:${verse.verse}`)
+  }
+  setContextMenu(null)
+}
+
+function handleLookUpLexicon(verse: BibleVerse) {
+  navigate(`/lexicon?book=${encodeURIComponent(verse.book)}&chapter=${verse.chapter}`)
+  setContextMenu(null)
+}
+
+function handleStartSermonFromVerse(verse: BibleVerse) {
+  navigate(`/sermons/new?passage=${encodeURIComponent(`${verse.book} ${verse.chapter}:${verse.verse}`)}`)
+  setContextMenu(null)
+}
 
   // Persist settings
   useEffect(() => {
-    const saved = localStorage.getItem('bible_settings')
-    if (saved) {
-      const s = JSON.parse(saved)
-      if (s.fontSize)      setFontSize(s.fontSize)
-      if (s.showVerseNums !== undefined) setShowVerseNums(s.showVerseNums)
-      if (s.viewMode)      setViewMode(s.viewMode)
-    }
-  }, [])
+  localStorage.setItem('bible_book',    selectedBook)
+  localStorage.setItem('bible_chapter', String(selectedChapter))
+}, [selectedBook, selectedChapter])
 
   useEffect(() => {
     localStorage.setItem('bible_settings', JSON.stringify({ fontSize, showVerseNums, viewMode }))
@@ -183,11 +236,11 @@ const pendingVerse   = useRef<number | null>(null)
       })
       setChapterCount(count)
       if (pendingChapter.current !== null) {
-        setSelectedChapter(pendingChapter.current)
-        pendingChapter.current = null
-      } else if (!isNavigatingHistory.current) {
-        setSelectedChapter(1)
-      }
+  setSelectedChapter(pendingChapter.current)
+  pendingChapter.current = null
+} else if (!isNavigatingHistory.current && selectedBook !== (localStorage.getItem('bible_book') ?? 'Genesis')) {
+  setSelectedChapter(1)
+}
     } catch {}
   }
   loadChapterCount()
@@ -599,7 +652,7 @@ const pendingVerse   = useRef<number | null>(null)
             ) : viewMode === 'paragraph' ? (
               <div style={{ fontFamily: 'var(--font-serif)', lineHeight: 1.9 }}>
                 {verses.map(v => (
-                  <span key={v.id} id={`bible-verse-${v.verse}`} onClick={() => toggleHighlight(v.verse)} style={{
+                  <span key={v.id} id={`bible-verse-${v.verse}`} onClick={() => toggleHighlight(v.verse)} onContextMenu={(e) => handleContextMenu(e, v)} style={{
                     cursor: 'pointer',
                     background: highlighted.has(v.verse) ? 'var(--color-accent-muted)' : 'transparent',
                     borderRadius: 3, padding: '1px 2px', transition: 'background 0.15s',
@@ -619,7 +672,7 @@ const pendingVerse   = useRef<number | null>(null)
             ) : (
               <div style={{ fontFamily: 'var(--font-serif)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {verses.map(v => (
-                  <div key={v.id} id={`bible-verse-${v.verse}`} onClick={() => toggleHighlight(v.verse)} style={{
+                  <div key={v.id} id={`bible-verse-${v.verse}`} onClick={() => toggleHighlight(v.verse)} onContextMenu={(e) => handleContextMenu(e, v)} style={{
                     cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 10,
                     padding: '4px 6px', borderRadius: 4,
                     background: highlighted.has(v.verse) ? 'var(--color-accent-muted)' : 'transparent',
@@ -641,6 +694,70 @@ const pendingVerse   = useRef<number | null>(null)
             )}
           </div>
         </div>
+
+        {contextMenu && (
+  <div style={{
+    position: 'fixed',
+    top:      contextMenu.y,
+    left:     contextMenu.x,
+    zIndex:   1000,
+    background:   'var(--color-bg-primary)',
+    border:       '1px solid var(--color-border-default)',
+    borderRadius: 'var(--radius-md)',
+    boxShadow:    '0 4px 16px rgba(0,0,0,0.12)',
+    padding:      '4px',
+    minWidth:     200,
+  }}>
+    {[
+      {
+        label: language === 'ES' ? 'Copiar versículo' : 'Copy verse',
+        icon: '📋',
+        onClick: () => handleCopyVerse(contextMenu.verse),
+      },
+      {
+        label: language === 'ES' ? 'Copiar referencia' : 'Copy reference',
+        icon: '🔗',
+        onClick: () => handleCopyRef(contextMenu.verse),
+      },
+      {
+        label: highlighted.has(contextMenu.verse.verse)
+          ? (language === 'ES' ? 'Quitar resaltado' : 'Remove highlight')
+          : (language === 'ES' ? 'Resaltar versículo' : 'Highlight verse'),
+        icon: '🖊',
+        onClick: () => { toggleHighlight(contextMenu.verse.verse); setContextMenu(null) },
+      },
+      {
+        label: language === 'ES' ? 'Ver en léxico' : 'Look up in Lexicon',
+        icon: '📖',
+        onClick: () => handleLookUpLexicon(contextMenu.verse),
+      },
+      {
+        label: language === 'ES' ? '+ Nuevo sermón desde aquí' : '+ Start sermon from here',
+        icon: '✍',
+        onClick: () => handleStartSermonFromVerse(contextMenu.verse),
+      },
+    ].map((item) => (
+      <button
+        key={item.label}
+        onClick={item.onClick}
+        style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          width: '100%', padding: '7px 10px',
+          background: 'transparent',
+          border: 'none', borderRadius: 4,
+          color: 'var(--color-text-primary)',
+          fontSize: 12, fontFamily: 'var(--font-sans)',
+          cursor: 'pointer', textAlign: 'left',
+        }}
+        onMouseEnter={e => (e.currentTarget.style.background = 'var(--color-bg-secondary)')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+      >
+        <span style={{ fontSize: 13 }}>{item.icon}</span>
+        {item.label}
+      </button>
+    ))}
+  </div>
+)}
       </div>
     </AppLayout>
   )

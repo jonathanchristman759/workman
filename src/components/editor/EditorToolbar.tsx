@@ -236,9 +236,11 @@ export function EditorToolbar({ editor, minimal, topRadius = true }: EditorToolb
 
       {/* Text formatting */}
       <ToolbarButton onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold"><strong>B</strong></ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Italic"><em>I</em></ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Underline"><span style={{ textDecoration: 'underline' }}>U</span></ToolbarButton>
-      <ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="Strike"><span style={{ textDecoration: 'line-through' }}>S</span></ToolbarButton>
+<ToolbarButton onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Italic"><em>I</em></ToolbarButton>
+<ToolbarButton onClick={() => editor.chain().focus().toggleUnderline().run()} active={editor.isActive('underline')} title="Underline"><span style={{ textDecoration: 'underline' }}>U</span></ToolbarButton>
+<ToolbarButton onClick={() => editor.chain().focus().toggleStrike().run()} active={editor.isActive('strike')} title="Strike"><span style={{ textDecoration: 'line-through' }}>S</span></ToolbarButton>
+<ToolbarButton onClick={() => editor.chain().focus().toggleSuperscript().run()} active={editor.isActive('superscript') && !editor.isActive('subscript')} title="Superscript"><span>x<sup style={{ fontSize: 8 }}>2</sup></span></ToolbarButton>
+<ToolbarButton onClick={() => editor.chain().focus().toggleSubscript().run()} active={editor.isActive('subscript') && !editor.isActive('superscript')} title="Subscript"><span>x<sub style={{ fontSize: 8 }}>2</sub></span></ToolbarButton>
 
       <Divider />
 
