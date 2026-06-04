@@ -66,6 +66,68 @@ const ES_TO_EN: Record<string, string> = {
 
 const FONT_SIZES = [14, 16, 18, 20]
 
+const BOOK_ALIASES: Record<string, string> = {
+  'gen':'Genesis','ex':'Exodus','exo':'Exodus','lev':'Leviticus','num':'Numbers',
+  'deut':'Deuteronomy','deu':'Deuteronomy','josh':'Joshua','jos':'Joshua',
+  'judg':'Judges','jdg':'Judges','ruth':'Ruth','rut':'Ruth',
+  '1sam':'1 Samuel','2sam':'2 Samuel','1ki':'1 Kings','2ki':'2 Kings',
+  '1kgs':'1 Kings','2kgs':'2 Kings','1chr':'1 Chronicles','2chr':'2 Chronicles',
+  '1chron':'1 Chronicles','2chron':'2 Chronicles','ezra':'Ezra','neh':'Nehemiah',
+  'est':'Esther','esth':'Esther','job':'Job','ps':'Psalms','psa':'Psalms',
+  'pss':'Psalms','prov':'Proverbs','pro':'Proverbs','eccl':'Ecclesiastes',
+  'ecc':'Ecclesiastes','song':'Song of Solomon','sos':'Song of Solomon',
+  'isa':'Isaiah','jer':'Jeremiah','lam':'Lamentations','ezek':'Ezekiel',
+  'eze':'Ezekiel','dan':'Daniel','hos':'Hosea','joel':'Joel','amos':'Amos',
+  'obad':'Obadiah','jonah':'Jonah','jon':'Jonah','mic':'Micah','nah':'Nahum',
+  'hab':'Habakkuk','zeph':'Zephaniah','zep':'Zephaniah','hag':'Haggai',
+  'zech':'Zechariah','zec':'Zechariah','mal':'Malachi','matt':'Matthew',
+  'mat':'Matthew','mark':'Mark','mrk':'Mark','luke':'Luke','luk':'Luke',
+  'john':'John','jn':'John','acts':'Acts','act':'Acts','rom':'Romans',
+  '1cor':'1 Corinthians','2cor':'2 Corinthians','gal':'Galatians',
+  'eph':'Ephesians','phil':'Philippians','php':'Philippians','col':'Colossians',
+  '1thess':'1 Thessalonians','2thess':'2 Thessalonians','1thes':'1 Thessalonians',
+  '2thes':'2 Thessalonians','1tim':'1 Timothy','2tim':'2 Timothy','tit':'Titus',
+  'titus':'Titus','phlm':'Philemon','philem':'Philemon','heb':'Hebrews',
+  'jas':'James','jam':'James','1pet':'1 Peter','2pet':'2 Peter','1pe':'1 Peter',
+  '2pe':'2 Peter','1jn':'1 John','2jn':'2 John','3jn':'3 John','jude':'Jude',
+  'rev':'Revelation','apoc':'Revelation',
+}
+
+function parseJumpQuery(query: string): { book: string; chapter: number; verse?: number } | null {
+  const q = query.trim()
+  if (!q) return null
+
+  // Match: optional number + book name + chapter + optional verse
+  // Handles: "John 3:16", "1 Cor 13:4", "Ps 23", "1Cor 13"
+  const match = q.match(/^(\d\s)?([a-zA-Z]+\.?)\s+(\d+)(?::(\d+))?$/)
+  if (!match) return null
+
+  const prefix  = match[1] ? match[1].trim() : ''
+  const bookRaw = (prefix + match[2]).toLowerCase().replace(/\s+/g, '').replace(/\./g, '')
+  const chapter = parseInt(match[3])
+  const verse   = match[4] ? parseInt(match[4]) : undefined
+
+  let book = BOOK_ALIASES[bookRaw]
+
+  if (!book) {
+    const allBooks = [
+      'Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth',
+      '1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles','Ezra',
+      'Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes','Song of Solomon',
+      'Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos',
+      'Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah','Haggai','Zechariah',
+      'Malachi','Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians',
+      '2 Corinthians','Galatians','Ephesians','Philippians','Colossians',
+      '1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon',
+      'Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation',
+    ]
+    book = allBooks.find(b => b.toLowerCase().replace(/\s+/g, '').startsWith(bookRaw)) ?? ''
+  }
+
+  if (!book || !chapter) return null
+  return { book, chapter, verse }
+}
+
 interface HistoryEntry { book: string; chapter: number }
 
 export default function BiblePage() {
@@ -92,6 +154,9 @@ export default function BiblePage() {
   const [historyIndex,    setHistoryIndex]     = useState(-1)
   const isNavigatingHistory = useRef(false)
   const verseListRef = useRef<HTMLDivElement>(null)
+  const [jumpQuery, setJumpQuery] = useState('')
+  const pendingChapter = useRef<number | null>(null)
+const pendingVerse   = useRef<number | null>(null)
 
   // Persist settings
   useEffect(() => {
@@ -110,40 +175,53 @@ export default function BiblePage() {
 
   // Load chapter count when book changes
   useEffect(() => {
-    async function loadChapterCount() {
-      try {
-        const count = await invoke<number>('get_chapter_count', {
-          translation: 'KJV',
-          book: selectedBook,
-        })
-        setChapterCount(count)
-        if (!isNavigatingHistory.current) setSelectedChapter(1)
-      } catch {}
-    }
-    loadChapterCount()
-  }, [selectedBook])
+  async function loadChapterCount() {
+    try {
+      const count = await invoke<number>('get_chapter_count', {
+        translation: 'KJV',
+        book: selectedBook,
+      })
+      setChapterCount(count)
+      if (pendingChapter.current !== null) {
+        setSelectedChapter(pendingChapter.current)
+        pendingChapter.current = null
+      } else if (!isNavigatingHistory.current) {
+        setSelectedChapter(1)
+      }
+    } catch {}
+  }
+  loadChapterCount()
+}, [selectedBook])
 
   // Load verses
   useEffect(() => {
-    async function loadVerses() {
-      setLoading(true)
-      setHighlighted(new Set())
-      try {
-        const dbBookName = translation === 'RVR60'
-          ? (Object.entries(ES_TO_EN).find(([, en]) => en === selectedBook)?.[0] ?? selectedBook)
-          : selectedBook
-        const data = await invoke<BibleVerse[]>('get_passage', {
-          translation,
-          book:    dbBookName,
-          chapter: selectedChapter,
-        })
-        setVerses(data)
-        verseListRef.current?.scrollTo({ top: 0 })
-      } catch {}
-      finally { setLoading(false) }
-    }
-    loadVerses()
-  }, [selectedBook, selectedChapter, translation])
+  async function loadVerses() {
+    setLoading(true)
+    setHighlighted(new Set())
+    try {
+      const dbBookName = translation === 'RVR60'
+        ? (Object.entries(ES_TO_EN).find(([, en]) => en === selectedBook)?.[0] ?? selectedBook)
+        : selectedBook
+      const data = await invoke<BibleVerse[]>('get_passage', {
+        translation,
+        book:    dbBookName,
+        chapter: selectedChapter,
+      })
+      setVerses(data)
+      verseListRef.current?.scrollTo({ top: 0 })
+      if (pendingVerse.current !== null) {
+        const verse = pendingVerse.current
+        pendingVerse.current = null
+        setTimeout(() => {
+          const el = document.getElementById(`bible-verse-${verse}`)
+          el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
+      }
+    } catch {}
+    finally { setLoading(false) }
+  }
+  loadVerses()
+}, [selectedBook, selectedChapter, translation])
 
   // History tracking
   useEffect(() => {
@@ -187,6 +265,26 @@ export default function BiblePage() {
     const passage = `${selectedBook} ${selectedChapter}`
     navigate(`/sermons/new?passage=${encodeURIComponent(passage)}`)
   }
+
+  function handleJump(e: React.KeyboardEvent<HTMLInputElement>) {
+  if (e.key !== 'Enter') return
+  const result = parseJumpQuery(jumpQuery)
+  if (!result) return
+
+  pendingChapter.current = result.chapter
+  if (result.verse) pendingVerse.current = result.verse
+
+  setSelectedBook(result.book)
+  setSelectedChapter(result.chapter)
+  setJumpQuery('')
+  if (result.verse) {
+    // Scroll to verse after load
+    setTimeout(() => {
+      const el = document.getElementById(`bible-verse-${result.verse}`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }, 400)
+  }
+}
 
   const displayBook = language === 'ES'
     ? (Object.entries(ES_TO_EN).find(([, en]) => en === selectedBook)?.[0] ?? selectedBook)
@@ -337,6 +435,22 @@ export default function BiblePage() {
               opacity: selectedChapter >= chapterCount ? 0.5 : 1, fontSize: 13,
             }}>→</button>
 
+            <input
+  type="text"
+  value={jumpQuery}
+  onChange={e => setJumpQuery(e.target.value)}
+  onKeyDown={handleJump}
+  placeholder={language === 'ES' ? 'Ir a… (ej. Juan 3:16)' : 'Go to… (e.g. John 3:16)'}
+  style={{
+    padding: '4px 10px', borderRadius: 6,
+    border: '1px solid var(--color-border-default)',
+    background: 'var(--color-bg-secondary)',
+    color: 'var(--color-text-primary)',
+    fontSize: 12, fontFamily: 'var(--font-sans)',
+    outline: 'none', width: 160,
+  }}
+/>
+
             {/* Translation toggle */}
             {!fullscreen && (
             <div style={{ display: 'flex', borderRadius: 6, overflow: 'hidden', border: '1px solid var(--color-border-default)' }}>
@@ -485,7 +599,7 @@ export default function BiblePage() {
             ) : viewMode === 'paragraph' ? (
               <div style={{ fontFamily: 'var(--font-serif)', lineHeight: 1.9 }}>
                 {verses.map(v => (
-                  <span key={v.id} onClick={() => toggleHighlight(v.verse)} style={{
+                  <span key={v.id} id={`bible-verse-${v.verse}`} onClick={() => toggleHighlight(v.verse)} style={{
                     cursor: 'pointer',
                     background: highlighted.has(v.verse) ? 'var(--color-accent-muted)' : 'transparent',
                     borderRadius: 3, padding: '1px 2px', transition: 'background 0.15s',
@@ -505,7 +619,7 @@ export default function BiblePage() {
             ) : (
               <div style={{ fontFamily: 'var(--font-serif)', display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {verses.map(v => (
-                  <div key={v.id} onClick={() => toggleHighlight(v.verse)} style={{
+                  <div key={v.id} id={`bible-verse-${v.verse}`} onClick={() => toggleHighlight(v.verse)} style={{
                     cursor: 'pointer', display: 'flex', alignItems: 'flex-start', gap: 10,
                     padding: '4px 6px', borderRadius: 4,
                     background: highlighted.has(v.verse) ? 'var(--color-accent-muted)' : 'transparent',
